@@ -34,7 +34,7 @@
       env.useCache(false);
 
       // URL of your model directory on the server (must be CORS-enabled)
-      const MODEL_URL = "https://your.server.com/models/flan-t5-small/";
+      const MODEL_URL = "https://huggingface.co/ShinpacheShimura/t5-smaller/tree/main/optimized-flan-t5-small";
 
       // Load tokenizer & quantized model remotely
       const tokenizer = await AutoTokenizer.from_pretrained(MODEL_URL, { localFilesOnly: false });
