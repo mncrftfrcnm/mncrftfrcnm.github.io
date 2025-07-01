@@ -7,6 +7,7 @@
   <!-- ONNX Runtime Web -->
 
   <!-- Transformers.js (Xenova) -->
+   <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@3.3.0/dist/transformers.min.js"></script>
   <script type="module" src="https://cdn.jsdelivr.net/npm/@xenova/transformers@3.3.0/dist/transformers.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
@@ -26,7 +27,7 @@
   <h2>Output</h2>
   <pre id="output">(waiting...)</pre>
   <script type="module">
-    import { env, AutoTokenizer, AutoModelForSeq2SeqLM } from "https://cdn.jsdelivr.net/npm/@xenova/transformers@3.3.0/dist/transformers.min.js";
+
 
     async function init() {
       // Disable persistent caching (IndexedDB) so model lives only in memory
