@@ -31,7 +31,8 @@
   </div>
 
   <script type="module">
-    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.4.0/dist/transformers.esm.js';
+    // Correct import path for Xenova Transformers ESM bundle
+    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.4.0/dist/transformers.js';
 
     const MODEL_ID = 'ShinpacheShimura/t5-smaller';
     let nlp;
