@@ -14,7 +14,6 @@
     button { margin-top: 1rem; padding: 0.75rem 1.25rem; font-size: 1rem; border: none; border-radius: 0.25rem; cursor: pointer; background: #4CAF50; color: white; }
     button:disabled { background: #9E9E9E; cursor: not-allowed; }
     .output { margin-top: 1rem; padding: 1rem; background: #eef; border-radius: 0.25rem; white-space: pre-wrap; }
-    .error { color: red; font-weight: bold; }
     @media (min-width: 768px) {
       .container { padding: 2rem; }
       h1 { font-size: 2rem; }
@@ -40,6 +39,12 @@
     const promptInput = document.getElementById('prompt-input');
     const outputDiv = document.getElementById('output');
 
+    function showError(title, err) {
+      const message = err.stack || err.message || JSON.stringify(err);
+      alert(`${title}:\n${message}`);
+      console.error(title, err);
+    }
+
     async function init() {
       runBtn.disabled = true;
       runBtn.textContent = 'Loading Model...';
@@ -48,8 +53,7 @@
         runBtn.textContent = 'Generate';
         runBtn.disabled = false;
       } catch (err) {
-        console.error('Model load error:', err);
-        outputDiv.innerHTML = `<span class="error">Error loading model: ${err.message || err}</span><br><pre>${err.stack || JSON.stringify(err, null, 2)}</pre>`;
+        showError('Error loading model', err);
       }
     }
 
@@ -61,17 +65,17 @@
       try {
         const prompt = promptInput.value.trim();
         if (!prompt) {
-          outputDiv.innerHTML = '<span class="error">Please enter a prompt.</span>';
+          alert('Please enter a prompt.');
         } else {
           const result = await nlp(prompt, { max_new_tokens: 50 });
           outputDiv.textContent = result[0].generated_text || result[0].text || JSON.stringify(result[0]);
         }
       } catch (err) {
-        console.error('Inference error:', err);
-        outputDiv.innerHTML = `<span class="error">Error during generation: ${err.message || err}</span><br><pre>${err.stack || JSON.stringify(err, null, 2)}</pre>`;
+        showError('Error during generation', err);
+      } finally {
+        runBtn.disabled = false;
+        runBtn.textContent = 'Generate';
       }
-      runBtn.disabled = false;
-      runBtn.textContent = 'Generate';
     });
 
     init();
