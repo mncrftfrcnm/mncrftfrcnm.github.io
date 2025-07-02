@@ -1,63 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flan-T5 Inference Demo (Remote Model)</title>
-  <!-- ONNX Runtime Web -->
-
-  <!-- Transformers.js (Xenova) -->
-<script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@3.3.0/dist/transformers.min.js"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hugging Face T5 Inference</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
-    h1 { text-align: center; }
-    textarea { width: 100%; height: 80px; margin-bottom: 1rem; padding: 0.5rem; font-size: 1rem; }
-    button { display: block; width: 100%; padding: 0.75rem; font-size: 1rem; cursor: pointer; border: none; border-radius: 0.25rem; background: #007bff; color: white; }
-    pre { background: #f5f5f5; padding: 1rem; border-radius: 0.25rem; white-space: pre-wrap; }
+    /* Mobile-first CSS */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; padding: 1rem; background: #f4f4f4; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; text-align: center; }
+    label { display: block; margin-top: 1rem; font-weight: bold; }
+    textarea { width: 100%; padding: 0.75rem; margin-top: 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 1rem; }
+    button { margin-top: 1rem; padding: 0.75rem 1.25rem; font-size: 1rem; border: none; border-radius: 0.25rem; cursor: pointer; background: #4CAF50; color: white; }
+    button:disabled { background: #9E9E9E; cursor: not-allowed; }
+    .output { margin-top: 1rem; padding: 1rem; background: #eef; border-radius: 0.25rem; white-space: pre-wrap; }
+    @media (min-width: 768px) {
+      .container { padding: 2rem; }
+      h1 { font-size: 2rem; }
+    }
   </style>
 </head>
 <body>
-  <h1>Flan-T5 Inference Demo (Remote Model)</h1>
-  <p>Model weights are served from a remote server; all computation happens in your browser, and weights are kept in memory (no persistent caching).</p>
+  <div class="container">
+    <h1>T5-smaller Inference Demo</h1>
+    <!-- Hardcoded model ID -->
+    <p>Model: <strong>ShinpacheShimura/t5-smaller</strong></p>
+    <label for="prompt-input">Enter Input Text:</label>
+    <textarea id="prompt-input" rows="4" placeholder="Type your text here..."></textarea>
+    <button id="run-btn">Generate</button>
+    <div id="output" class="output"></div>
+  </div>
 
-  <textarea id="input" placeholder="what is the capital of great britain?"></textarea>
-  <button id="generate">Generate</button>
-
-  <h2>Output</h2>
-  <pre id="output">(waiting...)</pre>
   <script type="module">
+    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers/dist/transformers.esm.js';
 
+    const MODEL_ID = 'ShinpacheShimura/t5-smaller';  // Hardcoded model identifier
+    let nlp;
+    const runBtn = document.getElementById('run-btn');
+    const promptInput = document.getElementById('prompt-input');
+    const outputDiv = document.getElementById('output');
 
-    async function init() {
-      // Disable persistent caching (IndexedDB) so model lives only in memory
-      env.useCache(false);
+    // Load model on startup
+    (async () => {
+      runBtn.disabled = true;
+      runBtn.textContent = 'Loading Model...';
+      try {
+        // T5 uses text2text-generation
+        nlp = await pipeline('text2text-generation', MODEL_ID);
+        runBtn.textContent = 'Generate';
+        runBtn.disabled = false;
+      } catch (err) {
+        console.error(err);
+        outputDiv.textContent = 'Error loading model: ' + err.message;
+      }
+    })();
 
-      // URL of your model directory on the server (must be CORS-enabled)
-      const MODEL_URL = "https://huggingface.co/ShinpacheShimura/t5-smaller/resolve/main/";
-
-      // Load tokenizer & quantized model remotely
-      const tokenizer = await AutoTokenizer.from_pretrained(MODEL_URL, { localFilesOnly: false });
-      const model = await AutoModelForSeq2SeqLM.from_pretrained(MODEL_URL, { quantized: true });
-
-      document.getElementById("generate").addEventListener("click", async () => {
-        const userInput = document.getElementById("input").value.trim();
-        if (!userInput) return;
-        const prompt = `Instruction: answer this request\nInput: ${userInput}\nOutput:`;
-
-        // Tokenize + Generate
-        const result = await model.generate({
-          inputs: prompt,
-          parameters: { max_new_tokens: 64, num_beams: 4 },
-          options: { use_cache: true }
-        });
-
-        // Decode
-        const answer = await tokenizer.decode(result[0], { skip_special_tokens: true });
-        document.getElementById("output").innerText = answer;
-      });
-    }
-    init();
+    runBtn.addEventListener('click', async () => {
+      runBtn.disabled = true;
+      runBtn.textContent = 'Generating...';
+      outputDiv.textContent = '';
+      try {
+        const prompt = promptInput.value;
+        const result = await nlp(prompt, { max_new_tokens: 50 });
+        // For T5, output key may be 'generated_text'
+        outputDiv.textContent = result[0].generated_text || result[0].text || JSON.stringify(result[0]);
+      } catch (err) {
+        console.error(err);
+        outputDiv.textContent = 'Error: ' + err.message;
+      }
+      runBtn.disabled = false;
+      runBtn.textContent = 'Generate';
+    });
   </script>
 </body>
 </html>
