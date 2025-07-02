@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hugging Face T5-smaller Inference</title>
   <style>
-    /* Mobile-first CSS */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; padding: 1rem; background: #f4f4f4; }
     .container { max-width: 600px; margin: auto; background: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -25,7 +24,6 @@
 <body>
   <div class="container">
     <h1>T5-smaller Inference Demo</h1>
-    <!-- Hardcoded model ID -->
     <p>Model: <strong>ShinpacheShimura/t5-smaller</strong></p>
     <label for="prompt-input">Enter Input Text:</label>
     <textarea id="prompt-input" rows="4" placeholder="Type your text here..."></textarea>
@@ -34,10 +32,9 @@
   </div>
 
   <script type="module">
-    // Using a specific version of Xenova Transformers to avoid path issues
     import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.4.0/dist/transformers.esm.js';
 
-    const MODEL_ID = 'ShinpacheShimura/t5-smaller';  // Hardcoded model identifier
+    const MODEL_ID = 'ShinpacheShimura/t5-smaller';
     let nlp;
     const runBtn = document.getElementById('run-btn');
     const promptInput = document.getElementById('prompt-input');
@@ -47,13 +44,12 @@
       runBtn.disabled = true;
       runBtn.textContent = 'Loading Model...';
       try {
-        // T5 uses text2text-generation
         nlp = await pipeline('text2text-generation', MODEL_ID);
         runBtn.textContent = 'Generate';
         runBtn.disabled = false;
       } catch (err) {
         console.error('Model load error:', err);
-        outputDiv.innerHTML = `<span class="error">Error loading model:</span> ${err.message}`;
+        outputDiv.innerHTML = `<span class="error">Error loading model: ${err.message || err}</span><br><pre>${err.stack || JSON.stringify(err, null, 2)}</pre>`;
       }
     }
 
@@ -72,13 +68,12 @@
         }
       } catch (err) {
         console.error('Inference error:', err);
-        outputDiv.innerHTML = `<span class="error">Error during generation:</span> ${err.message}`;
+        outputDiv.innerHTML = `<span class="error">Error during generation: ${err.message || err}</span><br><pre>${err.stack || JSON.stringify(err, null, 2)}</pre>`;
       }
       runBtn.disabled = false;
       runBtn.textContent = 'Generate';
     });
 
-    // Kick off model load
     init();
   </script>
 </body>
