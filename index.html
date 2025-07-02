@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hugging Face T5 Inference</title>
+  <title>Hugging Face T5-smaller Inference</title>
   <style>
     /* Mobile-first CSS */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -15,6 +15,7 @@
     button { margin-top: 1rem; padding: 0.75rem 1.25rem; font-size: 1rem; border: none; border-radius: 0.25rem; cursor: pointer; background: #4CAF50; color: white; }
     button:disabled { background: #9E9E9E; cursor: not-allowed; }
     .output { margin-top: 1rem; padding: 1rem; background: #eef; border-radius: 0.25rem; white-space: pre-wrap; }
+    .error { color: red; font-weight: bold; }
     @media (min-width: 768px) {
       .container { padding: 2rem; }
       h1 { font-size: 2rem; }
@@ -33,7 +34,8 @@
   </div>
 
   <script type="module">
-    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers/dist/transformers.esm.js';
+    // Using a specific version of Xenova Transformers to avoid path issues
+    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.4.0/dist/transformers.esm.js';
 
     const MODEL_ID = 'ShinpacheShimura/t5-smaller';  // Hardcoded model identifier
     let nlp;
@@ -41,8 +43,7 @@
     const promptInput = document.getElementById('prompt-input');
     const outputDiv = document.getElementById('output');
 
-    // Load model on startup
-    (async () => {
+    async function init() {
       runBtn.disabled = true;
       runBtn.textContent = 'Loading Model...';
       try {
@@ -51,27 +52,34 @@
         runBtn.textContent = 'Generate';
         runBtn.disabled = false;
       } catch (err) {
-        console.error(err);
-        outputDiv.textContent = 'Error loading model: ' + err.message;
+        console.error('Model load error:', err);
+        outputDiv.innerHTML = `<span class="error">Error loading model:</span> ${err.message}`;
       }
-    })();
+    }
 
     runBtn.addEventListener('click', async () => {
+      if (!nlp) return;
       runBtn.disabled = true;
       runBtn.textContent = 'Generating...';
       outputDiv.textContent = '';
       try {
-        const prompt = promptInput.value;
-        const result = await nlp(prompt, { max_new_tokens: 50 });
-        // For T5, output key may be 'generated_text'
-        outputDiv.textContent = result[0].generated_text || result[0].text || JSON.stringify(result[0]);
+        const prompt = promptInput.value.trim();
+        if (!prompt) {
+          outputDiv.innerHTML = '<span class="error">Please enter a prompt.</span>';
+        } else {
+          const result = await nlp(prompt, { max_new_tokens: 50 });
+          outputDiv.textContent = result[0].generated_text || result[0].text || JSON.stringify(result[0]);
+        }
       } catch (err) {
-        console.error(err);
-        outputDiv.textContent = 'Error: ' + err.message;
+        console.error('Inference error:', err);
+        outputDiv.innerHTML = `<span class="error">Error during generation:</span> ${err.message}`;
       }
       runBtn.disabled = false;
       runBtn.textContent = 'Generate';
     });
+
+    // Kick off model load
+    init();
   </script>
 </body>
 </html>
