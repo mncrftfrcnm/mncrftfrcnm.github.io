@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>TinyCore in Browser</title>
-  <!-- Embedded styles -->
   <style>
     html, body, #screen {
       margin: 0; padding: 0;
@@ -28,22 +27,23 @@
   <div id="screen"></div>
   <div class="note">Booting TinyCore...</div>
 
-  <!-- v86 Emulator: include from CDN -->
-  <script src="https://copy.sh/v86/build/libv86.js"></script>
+  <!-- v86 Emulator -->
+  <script src="https://copy.sh/v86/build/libv86.js" onload="startEmulator()"></script>
   <script>
-    // Initialize the emulator
-    new V86Starter({
-      wasm_path: "https://copy.sh/v86/build/v86.wasm",
-      memory_size: 128 * 1024 * 1024,    // 128 MB RAM
-      vga_memory_size: 2 * 1024 * 1024,  // 2 MB VRAM
-      screen_container: document.getElementById('screen'),
-      bios: { url: 'https://copy.sh/v86/build/bios/seabios.bin' },
-      vga_bios: { url: 'https://copy.sh/v86/build/bios/vgabios.bin' },
-      hda: {
-        url: 'https://github.com/mncrftfrcnm/mncrftfrcnm.github.io/releases/download/storage/TinyCore.img'
-      },
-      autostart: true,
-    });
+    function startEmulator() {
+      new V86Starter({
+        wasm_path: "https://copy.sh/v86/build/v86.wasm",
+        memory_size: 128 * 1024 * 1024,
+        vga_memory_size: 2 * 1024 * 1024,
+        screen_container: document.getElementById('screen'),
+        bios: { url: 'https://copy.sh/v86/build/bios/seabios.bin' },
+        vga_bios: { url: 'https://copy.sh/v86/build/bios/vgabios.bin' },
+        hda: {
+          url: 'https://github.com/mncrftfrcnm/mncrftfrcnm.github.io/releases/download/storage/TinyCore.img'
+        },
+        autostart: true,
+      });
+    }
   </script>
 </body>
 </html>
