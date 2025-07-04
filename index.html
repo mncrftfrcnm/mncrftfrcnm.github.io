@@ -6,28 +6,52 @@
   <title>Windows Evolution Showcase</title>
   <style>
     /* Global Reset and Typography */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
     body { font-family: 'Segoe UI', Tahoma, sans-serif; line-height: 1.4; background: #222; color: #eee; }
-    h1, h2 { margin: .5em 0; }
-    nav { position: fixed; top: 0; width: 100%; background: rgba(0,0,0,.7); padding: .5em; z-index: 100; display: flex; gap: 1em; }
+    nav { position: fixed; top: 0; width: 100%; background: rgba(0,0,0,0.7); padding: .5em; z-index: 100; display: flex; gap: 1em; }
     nav a { color: #fff; text-decoration: none; padding: .3em .6em; border-radius: 4px; }
-    nav a:hover { background: rgba(255,255,255,.2); }
-    section { padding: 6em 2em 4em; border-bottom: 1px solid #444; }
-    .demo-window { position: relative; width: 300px; height: 200px; margin-top: 1em; }
-    .titlebar { cursor: move; padding: 4px 8px; display: flex; justify-content: space-between; align-items: center; }
-    .content { padding: 8px; background: #fff; height: calc(100% - 24px); overflow: auto; }
+    nav a:hover { background: rgba(255,255,255,0.2); }
+    section { padding: 5em 2em 4em; border-bottom: 1px solid #444; min-height: 100vh; }
+    h1 { font-size: 2em; margin-bottom: .5em; }
+    h2 { font-size: 1.4em; margin: .7em 0; }
+    p, ul { margin-bottom: 1em; }
+
+    /* Demo common */
+    .demo-window { position: relative; width: 320px; height: 220px; margin-top: 1em; border: 2px solid #888; }
+    .titlebar { cursor: move; display: flex; align-items: center; justify-content: space-between; padding: 2px 6px; }
+    .titlebar .controls { display: flex; gap: 4px; }
+    .titlebar button { width: 12px; height: 12px; padding: 0; border: none; }
+    .content { padding: 8px; height: calc(100% - 24px); overflow: hidden; }
+
     /* Windows 1.0 theme */
-    .win1 .titlebar { background: #ccc; color: #000; font-size: 12px; border: 1px solid #888; }
-    .win1 .content { background: #eee; color: #000; font-size: 12px; }
+    .win1 { background: #E0E0E0; color: #000; font-family: 'MS Sans Serif', sans-serif; }
+    .win1 .titlebar { background: #C0C0C0; color: #000; font-size: 12px; border-bottom: 1px solid #888; }
+    .win1 .controls button { background: #E0E0E0; }
+    .win1 .content { background: #FFF; color: #000; font-size: 12px; }
+
     /* Windows 95 theme */
-    .win95 .titlebar { background: linear-gradient(to right, #000080, #0000CD); color: #fff; font-size: 14px; border: 2px outset #fff; }
+    .win95 { background: #008080; color: #000; font-family: 'Tahoma', sans-serif; }
+    .win95 .titlebar { background: linear-gradient(to right, #000080, #0000CD); color: #fff; font-size: 13px; border: 2px outset #fff; }
+    .win95 .controls button { background: #C0C0C0; border: 1px solid #888; }
     .win95 .content { background: #C0C0C0; color: #000; font-size: 13px; border: 2px inset #fff; }
-    /* Windows 98 */
-    .win98 .titlebar { background: linear-gradient(to right, #0000CD, #4169E1); color: #fff; font-size: 14px; border: 2px outset #fff; }
+    .win95 .start-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 30px; background: linear-gradient(to right, #E0E0E0, #C0C0C0); display: flex; align-items: center; padding: 0 8px; gap: 8px; }
+    .win95 .start-bar button { font-size: 13px; font-weight: bold; }
+
+    /* Windows 98 theme */
+    .win98 { background: #004080; color: #fff; font-family: 'Tahoma', sans-serif; }
+    .win98 .titlebar { background: linear-gradient(to right, #0000CD, #4169E1); color: #fff; font-size: 13px; border: 2px outset #fff; }
+    .win98 .controls button { background: #D8D8D8; border: 1px solid #888; }
     .win98 .content { background: #D8D8D8; color: #000; font-size: 13px; border: 2px inset #fff; }
-    /* Windows 2000 */
-    .win2000 .titlebar { background: #3A6EA5; color: #fff; font-size: 14px; border: 2px outset #fff; }
+    .win98 .quick-launch { margin-top: 10px; display: flex; gap: 6px; }
+    .win98 .quick-launch button { width: 32px; height: 32px; border: none; }
+
+    /* Windows 2000 theme */
+    .win2000 { background: #2B579A; color: #fff; font-family: 'Tahoma', sans-serif; }
+    .win2000 .titlebar { background: #3A6EA5; color: #fff; font-size: 13px; border: 2px outset #fff; }
+    .win2000 .controls button { background: #A8A8A8; border: 1px solid #666; }
     .win2000 .content { background: #B0B0B0; color: #000; font-size: 13px; border: 2px inset #fff; }
+    .win2000 .taskbar { position: absolute; bottom: 0; left: 0; width: 100%; height: 28px; background: #C0C0C0; display: flex; align-items: center; padding: 0 10px; }
+    .win2000 .taskbar button { margin-right: 4px; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -38,92 +62,107 @@
     <a href="#win2000">Windows 2000</a>
   </nav>
 
-  <!-- SECTION: Windows 1.0 -->
+  <!-- Windows 1.0 -->
   <section id="win1" class="win1">
     <h1>Windows 1.0 (1985)</h1>
     <h2>History & Changes</h2>
-    <p>Microsoft released Windows 1.0 on November 20, 1985. It introduced a graphical shell on top of MS-DOS, featuring tiled windows and simple controls.</p>
+    <p>Released November 20, 1985, Windows 1.0 introduced tiled GUI atop MS-DOS. It featured non-overlapping windows, simple dialogs, and the first Paint and Write apps.</p>
+    <p>Key improvements over DOS included virtual memory swapping and mouse-driven operations.</p>
     <h2>Interesting Facts</h2>
     <ul>
-      <li>First GUI by Microsoft, no overlapping windows, only side-by-side tiling.</li>
-      <li>Included simple apps like Paint, Write, Calculator.</li>
+      <li>Minimum requirements: 256 KB RAM, two double-density floppy drives.</li>
+      <li>Only supported monochrome and CGA graphics.</li>
     </ul>
     <h2>Demo</h2>
-    <div class="demo-window">
-      <div class="titlebar">Program Manager <span>&times;</span></div>
-      <div class="content">This is a small demo of Windows 1.0 UI.</div>
+    <div class="demo-window win1">
+      <div class="titlebar">File Manager <div class="controls"><button onclick="alert('Close clicked')"></button></div></div>
+      <div class="content">
+        <button onclick="alert('New File')">New</button>
+        <button onclick="alert('Open File')">Open</button>
+      </div>
     </div>
   </section>
 
-  <!-- SECTION: Windows 95 -->
+  <!-- Windows 95 -->
   <section id="win95" class="win95">
     <h1>Windows 95 (1995)</h1>
     <h2>History & Changes</h2>
-    <p>Launched on August 24, 1995, Windows 95 introduced the Start menu, taskbar, and long file names. It was a major leap from Windows 3.x environments.</p>
+    <p>Launched August 24, 1995, Windows 95 revolutionized consumer OS with the Start menu, taskbar, and plug-and-play hardware support.</p>
+    <p>It integrated MS-DOS and Windows seamlessly and introduced preemptive multitasking.</p>
     <h2>Interesting Facts</h2>
     <ul>
-      <li>Over 60 million copies sold in the first year.</li>
-      <li>Included Internet Explorer for the first time.</li>
+      <li>Packaged with the revolutionary dial-up Internet setup wizard.</li>
+      <li>Bundled with Internet Explorer 1.0 after OSR1 update.</li>
     </ul>
     <h2>Demo</h2>
-    <div class="demo-window">
-      <div class="titlebar">My Computer <span>&times;</span></div>
-      <div class="content">Explore the new Start menu and taskbar!</div>
+    <div class="demo-window win95">
+      <div class="titlebar">My Computer<div class="controls"><button onclick="alert('Minimize')"></button><button onclick="alert('Close')"></button></div></div>
+      <div class="content">
+        <button onclick="alert('Viewing Files')">Browse...</button>
+      </div>
+      <div class="start-bar">
+        <button onclick="alert('Start Menu')">Start</button>
+      </div>
     </div>
   </section>
 
-  <!-- SECTION: Windows 98 -->
+  <!-- Windows 98 -->
   <section id="win98" class="win98">
     <h1>Windows 98 (1998)</h1>
     <h2>History & Changes</h2>
-    <p>Released June 25, 1998, Windows 98 improved hardware support, USB, and introduced the Quick Launch bar.</p>
+    <p>Released June 25, 1998, Windows 98 improved USB support, FAT32 drive sizing, and introduced Active Desktop for live content.</p>
+    <p>It also enhanced multimedia with built-in DVD playback and HTML-based control panel.</p>
     <h2>Interesting Facts</h2>
     <ul>
-      <li>First OS to support FAT32 partitions.</li>
-      <li>Active Desktop integrated web content on the desktop.</li>
+      <li>First OS to require fewer restarts during driver installs.</li>
+      <li>Bundled Windows Movie Maker beta in later OEM releases.</li>
     </ul>
     <h2>Demo</h2>
-    <div class="demo-window">
-      <div class="titlebar">Internet Explorer <span>&times;</span></div>
-      <div class="content">Surf the early web with this demo!</div>
+    <div class="demo-window win98">
+      <div class="titlebar">Internet Explorer<div class="controls"><button onclick="alert('Minimize')"></button><button onclick="alert('Close')"></button></div></div>
+      <div class="content">
+        <button onclick="alert('Go Home')">Home</button>
+        <button onclick="alert('Refresh')">Refresh</button>
+      </div>
+      <div class="quick-launch">
+        <button onclick="alert('Launch Explorer')">📁</button>
+        <button onclick="alert('Launch Mail')">✉️</button>
+      </div>
     </div>
   </section>
 
-  <!-- SECTION: Windows 2000 -->
+  <!-- Windows 2000 -->
   <section id="win2000" class="win2000">
     <h1>Windows 2000 (2000)</h1>
     <h2>History & Changes</h2>
-    <p>Windows 2000, released February 17, 2000, was built on NT architecture bringing stability and improved networking to business users.</p>
+    <p>Debuted February 17, 2000, Windows 2000 built on NT core for enterprise stability, introducing Active Directory, EFS encryption, and better network management.</p>
+    <p>It supported new NTFS features like disk quotas and dynamic disks.</p>
     <h2>Interesting Facts</h2>
     <ul>
-      <li>Introduced Encrypting File System (EFS).</li>
-      <li>Designed primarily for professional and enterprise use.</li>
+      <li>Scored highly for stability: rare Blue Screen events pre-SP2.</li>
+      <li>Last Windows to support Alpha and Itanium architectures.</li>
     </ul>
     <h2>Demo</h2>
-    <div class="demo-window">
-      <div class="titlebar">Active Directory <span>&times;</span></div>
-      <div class="content">Manage users and devices in this demo.</div>
+    <div class="demo-window win2000">
+      <div class="titlebar">Control Panel<div class="controls"><button onclick="alert('Minimize')"></button><button onclick="alert('Close')"></button></div></div>
+      <div class="content">
+        <button onclick="alert('Open Users')">Users</button>
+        <button onclick="alert('Open Network')">Network</button>
+      </div>
+      <div class="taskbar">
+        <button onclick="alert('Show Desktop')">Desktop</button>
+        <button onclick="alert('Open Explorer')">Explorer</button>
+      </div>
     </div>
   </section>
 
   <script>
-    // Simple drag functionality for demo windows
     document.querySelectorAll('.demo-window').forEach(win => {
       const title = win.querySelector('.titlebar');
-      let isDragging = false, offsetX, offsetY;
-
-      title.addEventListener('mousedown', e => {
-        isDragging = true;
-        const rect = win.getBoundingClientRect();
-        offsetX = e.clientX - rect.left;
-        offsetY = e.clientY - rect.top;
-      });
+      let isDragging = false, offsetX = 0, offsetY = 0;
+      title.addEventListener('mousedown', e => { isDragging = true; const rect = win.getBoundingClientRect(); offsetX = e.clientX - rect.left; offsetY = e.clientY - rect.top; });
       document.addEventListener('mouseup', () => isDragging = false);
-      document.addEventListener('mousemove', e => {
-        if (!isDragging) return;
-        win.style.left = (e.clientX - offsetX) + 'px';
-        win.style.top = (e.clientY - offsetY) + 'px';
-      });
+      document.addEventListener('mousemove', e => { if (!isDragging) return; win.style.left = (e.clientX - offsetX) + 'px'; win.style.top = (e.clientY - offsetY) + 'px'; });
     });
   </script>
 </body>
