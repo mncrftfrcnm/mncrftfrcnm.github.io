@@ -1,67 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>My Tiny-Core‑in‑Browser</title>
-  <script src="jslinux.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows Evolution Showcase</title>
   <style>
-    body { font-family: sans-serif; margin: 0; }
-    #sidebar { width: 240px; background:#f4f4f4; padding:1em; float:left; height:100vh; box-sizing:border-box; }
-    #vmcontainer { margin-left:240px; height:100vh; }
-    label { display:block; margin:8px 0; }
+    /* Global Reset and Typography */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; line-height: 1.4; background: #222; color: #eee; }
+    h1, h2 { margin: .5em 0; }
+    nav { position: fixed; top: 0; width: 100%; background: rgba(0,0,0,.7); padding: .5em; z-index: 100; display: flex; gap: 1em; }
+    nav a { color: #fff; text-decoration: none; padding: .3em .6em; border-radius: 4px; }
+    nav a:hover { background: rgba(255,255,255,.2); }
+    section { padding: 6em 2em 4em; border-bottom: 1px solid #444; }
+    .demo-window { position: relative; width: 300px; height: 200px; margin-top: 1em; }
+    .titlebar { cursor: move; padding: 4px 8px; display: flex; justify-content: space-between; align-items: center; }
+    .content { padding: 8px; background: #fff; height: calc(100% - 24px); overflow: auto; }
+    /* Windows 1.0 theme */
+    .win1 .titlebar { background: #ccc; color: #000; font-size: 12px; border: 1px solid #888; }
+    .win1 .content { background: #eee; color: #000; font-size: 12px; }
+    /* Windows 95 theme */
+    .win95 .titlebar { background: linear-gradient(to right, #000080, #0000CD); color: #fff; font-size: 14px; border: 2px outset #fff; }
+    .win95 .content { background: #C0C0C0; color: #000; font-size: 13px; border: 2px inset #fff; }
+    /* Windows 98 */
+    .win98 .titlebar { background: linear-gradient(to right, #0000CD, #4169E1); color: #fff; font-size: 14px; border: 2px outset #fff; }
+    .win98 .content { background: #D8D8D8; color: #000; font-size: 13px; border: 2px inset #fff; }
+    /* Windows 2000 */
+    .win2000 .titlebar { background: #3A6EA5; color: #fff; font-size: 14px; border: 2px outset #fff; }
+    .win2000 .content { background: #B0B0B0; color: #000; font-size: 13px; border: 2px inset #fff; }
   </style>
 </head>
 <body>
-  <div id="sidebar">
-    <h2>Settings</h2>
-    <label>
-      Memory (MB):
-      <input type="number" id="memInput" value="256" min="64" max="1024">
-    </label>
-    <label>
-      ISO:
-      <select id="imgSelect">
-        <option value="alpine-x86-xwin.cfg">Alpine Desktop</option>
-        <option value="tclcore.cfg">Tiny Core</option>
-        <option value="coreplus.cfg">Tiny Core+DE</option>
-      </select>
-    </label>
-    <label>
-      Graphic:
-      <input type="checkbox" id="gfxToggle" checked>
-    </label>
-    <button id="launchBtn">Launch VM</button>
+  <nav>
+    <a href="#win1">Windows 1.0</a>
+    <a href="#win95">Windows 95</a>
+    <a href="#win98">Windows 98</a>
+    <a href="#win2000">Windows 2000</a>
+  </nav>
 
-    <hr>
-    <h2>Tutorial</h2>
-    <div id="tutorial">
-      <p>Welcome! Use the controls above to pick your settings, then click “Launch VM.”</p>
-      <ol>
-        <li>Set memory to at least 128 MB.</li>
-        <li>Choose “Tiny Core+DE” to get FLTK/FLWM GUI.</li>
-        <li>Click launch and wait a moment for the webassembly VM to start.</li>
-      </ol>
+  <!-- SECTION: Windows 1.0 -->
+  <section id="win1" class="win1">
+    <h1>Windows 1.0 (1985)</h1>
+    <h2>History & Changes</h2>
+    <p>Microsoft released Windows 1.0 on November 20, 1985. It introduced a graphical shell on top of MS-DOS, featuring tiled windows and simple controls.</p>
+    <h2>Interesting Facts</h2>
+    <ul>
+      <li>First GUI by Microsoft, no overlapping windows, only side-by-side tiling.</li>
+      <li>Included simple apps like Paint, Write, Calculator.</li>
+    </ul>
+    <h2>Demo</h2>
+    <div class="demo-window">
+      <div class="titlebar">Program Manager <span>&times;</span></div>
+      <div class="content">This is a small demo of Windows 1.0 UI.</div>
     </div>
-  </div>
+  </section>
 
-  <div id="vmcontainer">
-    <!-- the VM canvas will be injected here -->
-  </div>
+  <!-- SECTION: Windows 95 -->
+  <section id="win95" class="win95">
+    <h1>Windows 95 (1995)</h1>
+    <h2>History & Changes</h2>
+    <p>Launched on August 24, 1995, Windows 95 introduced the Start menu, taskbar, and long file names. It was a major leap from Windows 3.x environments.</p>
+    <h2>Interesting Facts</h2>
+    <ul>
+      <li>Over 60 million copies sold in the first year.</li>
+      <li>Included Internet Explorer for the first time.</li>
+    </ul>
+    <h2>Demo</h2>
+    <div class="demo-window">
+      <div class="titlebar">My Computer <span>&times;</span></div>
+      <div class="content">Explore the new Start menu and taskbar!</div>
+    </div>
+  </section>
+
+  <!-- SECTION: Windows 98 -->
+  <section id="win98" class="win98">
+    <h1>Windows 98 (1998)</h1>
+    <h2>History & Changes</h2>
+    <p>Released June 25, 1998, Windows 98 improved hardware support, USB, and introduced the Quick Launch bar.</p>
+    <h2>Interesting Facts</h2>
+    <ul>
+      <li>First OS to support FAT32 partitions.</li>
+      <li>Active Desktop integrated web content on the desktop.</li>
+    </ul>
+    <h2>Demo</h2>
+    <div class="demo-window">
+      <div class="titlebar">Internet Explorer <span>&times;</span></div>
+      <div class="content">Surf the early web with this demo!</div>
+    </div>
+  </section>
+
+  <!-- SECTION: Windows 2000 -->
+  <section id="win2000" class="win2000">
+    <h1>Windows 2000 (2000)</h1>
+    <h2>History & Changes</h2>
+    <p>Windows 2000, released February 17, 2000, was built on NT architecture bringing stability and improved networking to business users.</p>
+    <h2>Interesting Facts</h2>
+    <ul>
+      <li>Introduced Encrypting File System (EFS).</li>
+      <li>Designed primarily for professional and enterprise use.</li>
+    </ul>
+    <h2>Demo</h2>
+    <div class="demo-window">
+      <div class="titlebar">Active Directory <span>&times;</span></div>
+      <div class="content">Manage users and devices in this demo.</div>
+    </div>
+  </section>
 
   <script>
-    document.getElementById('launchBtn').addEventListener('click', () => {
-      const mem = parseInt(document.getElementById('memInput').value, 10);
-      const cfg  = document.getElementById('imgSelect').value;
-      const gfx  = document.getElementById('gfxToggle').checked ? 1 : 0;
-      // clear old VM
-      document.getElementById('vmcontainer').innerHTML = '';
-      // create iframe or init engine
-      const iframe = document.createElement('iframe');
-      iframe.src = `vm.html?url=${cfg}&mem=${mem}&graphic=${gfx}`;
-      iframe.style.width  = '100%';
-      iframe.style.height = '100%';
-      iframe.frameBorder = 0;
-      document.getElementById('vmcontainer').appendChild(iframe);
+    // Simple drag functionality for demo windows
+    document.querySelectorAll('.demo-window').forEach(win => {
+      const title = win.querySelector('.titlebar');
+      let isDragging = false, offsetX, offsetY;
+
+      title.addEventListener('mousedown', e => {
+        isDragging = true;
+        const rect = win.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+      });
+      document.addEventListener('mouseup', () => isDragging = false);
+      document.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        win.style.left = (e.clientX - offsetX) + 'px';
+        win.style.top = (e.clientY - offsetY) + 'px';
+      });
     });
   </script>
 </body>
