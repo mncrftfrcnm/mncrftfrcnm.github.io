@@ -1,85 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hugging Face T5-smaller Inference</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TinyCore in Browser</title>
+  <!-- Embedded styles -->
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; padding: 1rem; background: #f4f4f4; }
-    .container { max-width: 600px; margin: auto; background: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    h1 { font-size: 1.5rem; margin-bottom: 1rem; text-align: center; }
-    label { display: block; margin-top: 1rem; font-weight: bold; }
-    textarea { width: 100%; padding: 0.75rem; margin-top: 0.5rem; border: 1px solid #ccc; border-radius: 0.25rem; font-size: 1rem; }
-    button { margin-top: 1rem; padding: 0.75rem 1.25rem; font-size: 1rem; border: none; border-radius: 0.25rem; cursor: pointer; background: #4CAF50; color: white; }
-    button:disabled { background: #9E9E9E; cursor: not-allowed; }
-    .output { margin-top: 1rem; padding: 1rem; background: #eef; border-radius: 0.25rem; white-space: pre-wrap; }
-    @media (min-width: 768px) {
-      .container { padding: 2rem; }
-      h1 { font-size: 2rem; }
+    html, body, #screen {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: #000;
+    }
+    #screen canvas {
+      display: block;
+      width: 100%; height: 100%;
+    }
+    .note {
+      position: absolute;
+      top: 8px; left: 8px;
+      color: #fff; font-family: sans-serif;
+      background: rgba(0,0,0,0.5);
+      padding: 4px 8px; border-radius: 4px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>T5-smaller Inference Demo</h1>
-    <p>Model: <strong>ShinpacheShimura/t5-smaller</strong></p>
-    <label for="prompt-input">Enter Input Text:</label>
-    <textarea id="prompt-input" rows="4" placeholder="Type your text here..."></textarea>
-    <button id="run-btn">Generate</button>
-    <div id="output" class="output"></div>
-  </div>
+  <div id="screen"></div>
+  <div class="note">Booting TinyCore...</div>
 
-  <script type="module">
-    // Correct import path for Xenova Transformers ESM bundle
-    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.4.0/dist/transformers.js';
-
-    const MODEL_ID = 'ShinpacheShimura/t5-smaller';
-    let nlp;
-    const runBtn = document.getElementById('run-btn');
-    const promptInput = document.getElementById('prompt-input');
-    const outputDiv = document.getElementById('output');
-
-    function showError(title, err) {
-      const message = err.stack || err.message || JSON.stringify(err);
-      alert(`${title}:\n${message}`);
-      console.error(title, err);
-    }
-
-    async function init() {
-      runBtn.disabled = true;
-      runBtn.textContent = 'Loading Model...';
-      try {
-        nlp = await pipeline('text2text-generation', MODEL_ID);
-        runBtn.textContent = 'Generate';
-        runBtn.disabled = false;
-      } catch (err) {
-        showError('Error loading model', err);
-      }
-    }
-
-    runBtn.addEventListener('click', async () => {
-      if (!nlp) return;
-      runBtn.disabled = true;
-      runBtn.textContent = 'Generating...';
-      outputDiv.textContent = '';
-      try {
-        const prompt = promptInput.value.trim();
-        if (!prompt) {
-          alert('Please enter a prompt.');
-        } else {
-          const result = await nlp(prompt, { max_new_tokens: 50 });
-          outputDiv.textContent = result[0].generated_text || result[0].text || JSON.stringify(result[0]);
-        }
-      } catch (err) {
-        showError('Error during generation', err);
-      } finally {
-        runBtn.disabled = false;
-        runBtn.textContent = 'Generate';
-      }
+  <!-- v86 Emulator: include from CDN -->
+  <script src="https://copy.sh/v86/build/libv86.js"></script>
+  <script>
+    // Initialize the emulator
+    new V86Starter({
+      wasm_path: "https://copy.sh/v86/build/v86.wasm",
+      memory_size: 128 * 1024 * 1024,    // 128 MB RAM
+      vga_memory_size: 2 * 1024 * 1024,  // 2 MB VRAM
+      screen_container: document.getElementById('screen'),
+      bios: { url: 'https://copy.sh/v86/build/bios/seabios.bin' },
+      vga_bios: { url: 'https://copy.sh/v86/build/bios/vgabios.bin' },
+      hda: {
+        url: 'https://github.com/mncrftfrcnm/mncrftfrcnm.github.io/releases/download/storage/TinyCore.img'
+      },
+      autostart: true,
     });
-
-    init();
   </script>
 </body>
 </html>
