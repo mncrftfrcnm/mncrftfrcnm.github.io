@@ -1,49 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>TinyCore in Browser</title>
+  <title>My Tiny-Core‑in‑Browser</title>
+  <script src="jslinux.js"></script>
   <style>
-    html, body, #screen {
-      margin: 0; padding: 0;
-      width: 100%; height: 100%;
-      background: #000;
-    }
-    #screen canvas {
-      display: block;
-      width: 100%; height: 100%;
-    }
-    .note {
-      position: absolute;
-      top: 8px; left: 8px;
-      color: #fff; font-family: sans-serif;
-      background: rgba(0,0,0,0.5);
-      padding: 4px 8px; border-radius: 4px;
-    }
+    body { font-family: sans-serif; margin: 0; }
+    #sidebar { width: 240px; background:#f4f4f4; padding:1em; float:left; height:100vh; box-sizing:border-box; }
+    #vmcontainer { margin-left:240px; height:100vh; }
+    label { display:block; margin:8px 0; }
   </style>
 </head>
 <body>
-  <div id="screen"></div>
-  <div class="note">Booting TinyCore...</div>
+  <div id="sidebar">
+    <h2>Settings</h2>
+    <label>
+      Memory (MB):
+      <input type="number" id="memInput" value="256" min="64" max="1024">
+    </label>
+    <label>
+      ISO:
+      <select id="imgSelect">
+        <option value="alpine-x86-xwin.cfg">Alpine Desktop</option>
+        <option value="tclcore.cfg">Tiny Core</option>
+        <option value="coreplus.cfg">Tiny Core+DE</option>
+      </select>
+    </label>
+    <label>
+      Graphic:
+      <input type="checkbox" id="gfxToggle" checked>
+    </label>
+    <button id="launchBtn">Launch VM</button>
 
-  <!-- v86 Emulator -->
-  <script src="https://copy.sh/v86/build/libv86.js" onload="startEmulator()"></script>
+    <hr>
+    <h2>Tutorial</h2>
+    <div id="tutorial">
+      <p>Welcome! Use the controls above to pick your settings, then click “Launch VM.”</p>
+      <ol>
+        <li>Set memory to at least 128 MB.</li>
+        <li>Choose “Tiny Core+DE” to get FLTK/FLWM GUI.</li>
+        <li>Click launch and wait a moment for the webassembly VM to start.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div id="vmcontainer">
+    <!-- the VM canvas will be injected here -->
+  </div>
+
   <script>
-    function startEmulator() {
-      new V86Starter({
-        wasm_path: "https://copy.sh/v86/build/v86.wasm",
-        memory_size: 128 * 1024 * 1024,
-        vga_memory_size: 2 * 1024 * 1024,
-        screen_container: document.getElementById('screen'),
-        bios: { url: 'https://copy.sh/v86/build/bios/seabios.bin' },
-        vga_bios: { url: 'https://copy.sh/v86/build/bios/vgabios.bin' },
-        hda: {
-          url: 'https://github.com/mncrftfrcnm/mncrftfrcnm.github.io/releases/download/storage/TinyCore.img'
-        },
-        autostart: true,
-      });
-    }
+    document.getElementById('launchBtn').addEventListener('click', () => {
+      const mem = parseInt(document.getElementById('memInput').value, 10);
+      const cfg  = document.getElementById('imgSelect').value;
+      const gfx  = document.getElementById('gfxToggle').checked ? 1 : 0;
+      // clear old VM
+      document.getElementById('vmcontainer').innerHTML = '';
+      // create iframe or init engine
+      const iframe = document.createElement('iframe');
+      iframe.src = `vm.html?url=${cfg}&mem=${mem}&graphic=${gfx}`;
+      iframe.style.width  = '100%';
+      iframe.style.height = '100%';
+      iframe.frameBorder = 0;
+      document.getElementById('vmcontainer').appendChild(iframe);
+    });
   </script>
 </body>
 </html>
