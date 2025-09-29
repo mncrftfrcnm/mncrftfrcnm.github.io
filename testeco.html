@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EcoRay Grove — Nature Scroll</title>
-  <meta name="description" content="A whimsical, nature‑themed website powered by Three.js. Plants grow as you scroll. Inspired by painterly platformer vibes." />
+  <meta name="description" content="A whimsical, nature-themed website powered by Three.js. Plants grow as you scroll. Inspired by painterly platformer vibes." />
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="preconnect" href="https://threejs.org" />
   <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@300;400&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet" />
@@ -30,6 +30,15 @@
       font-family: 'Nunito', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       overflow-x: hidden;
     }
+    /* 2D flora sway */
+    @keyframes sway { 
+    0% { transform: translateZ(0) rotateZ(-2deg); } 
+    50% { transform: translateZ(0) rotateZ(2deg); } 
+    100% { transform: translateZ(0) rotateZ(-2deg); } 
+    }
+    #floraLayer use.leaf { transform-origin: 50% 100%; animation: sway 5s ease-in-out infinite; }
+    #floraLayer g.vine { animation: sway 9s ease-in-out infinite; }
+
     header {
       position: fixed; inset: 0 0 auto 0; z-index: 10;
       display: flex; align-items: center; justify-content: space-between;
@@ -69,13 +78,127 @@
     .cta { display: inline-flex; align-items: center; gap: .6rem; padding: .9rem 1.2rem; border-radius: 999px; border: 2px solid transparent; font-weight: 900; text-decoration: none; color:#03261f; background: linear-gradient(135deg, var(--leaf), var(--leaf-2)); box-shadow: 0 10px 40px rgba(0,255,170,.25); }
     .cta:hover { filter: brightness(1.05); box-shadow: 0 16px 46px rgba(0,255,170,.35); }
 
+    /* --- INTERACTIVE TOON GALLERY --- */
+    #gallery { padding: 8vh 0; min-height: 120svh; }
+    .gal-wrap {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(300px, 1fr));
+      gap: clamp(16px, 3vw, 32px);
+      align-items: stretch;
+      padding: 0 6vw;
+    }
+    @media (max-width: 900px){
+      .gal-wrap { grid-template-columns: 1fr; }
+    }
+    .toon-card {
+      position: relative;
+      aspect-ratio: 4/3;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(168,255,206,.18);
+      background: linear-gradient(180deg, rgba(6,33,26,.6), rgba(3,17,13,.8));
+      box-shadow: 0 30px 80px rgba(0,0,0,.35), inset 0 0 120px rgba(168,255,206,.05);
+      transform-style: preserve-3d;
+      transition: box-shadow .3s ease, filter .3s ease;
+      cursor: pointer;
+      will-change: transform, filter;
+    }
+    .toon-card::after{
+      content: ""; position: absolute; inset: -20% -20% auto -20%; height: 60%;
+      background: radial-gradient(50% 50% at 30% 50%, rgba(168,255,206,.18), transparent 60%);
+      mix-blend-mode: screen; transform: translateZ(40px);
+      pointer-events: none;
+    }
+    .toon-img{
+      position: absolute; inset: 0;
+      width: 100%; height: 100%; object-fit: cover;
+      filter: url(#toonify);
+      transform: translateZ(20px) scale(1.02);
+      transition: transform .5s cubic-bezier(.2,.8,.2,1), filter .35s ease;
+    }
+    .ink-outline{
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(120% 120% at 50% 110%, rgba(0,0,0,.0), rgba(0,0,0,.35));
+      mix-blend-mode: multiply; opacity:.5; transform: translateZ(30px);
+    }
+    .toon-badge{
+      position: absolute; left: 16px; top: 16px; z-index: 3;
+      display:inline-flex; align-items:center; gap:.5rem;
+      padding:.45rem .7rem; font-weight:900; letter-spacing:.4px;
+      border-radius:999px; background: rgba(0,168,107,.22);
+      border:1px solid rgba(168,255,206,.3);
+      text-shadow: 0 0 10px rgba(0,0,0,.6);
+      transform: translateZ(50px);
+    }
+    .toon-card:is(:hover, :focus-visible){
+      box-shadow: 0 40px 120px rgba(0,255,170,.22);
+    }
+    .toon-card:is(:hover, :focus-visible) .toon-img{
+      transform: translateZ(26px) scale(1.06) rotateZ(.2deg);
+      filter: url(#toonify-strong) saturate(1.1);
+    }
+    .caption{
+      position: absolute; right: 16px; bottom: 14px; z-index: 3;
+      font-weight: 800; opacity: .92; transform: translateZ(50px);
+      text-shadow: 0 2px 10px rgba(0,0,0,.6);
+      background: rgba(3,25,20,.45);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(168,255,206,.25);
+      border-radius: 12px; padding: .35rem .6rem;
+    }
+
     footer { padding: 6rem 8vw; text-align: center; color: #c8f7e6; opacity: .9; }
     .fine { font-size: .85rem; opacity: .8; }
 
     /* Small helpers */
     .hidden { display:none; }
   </style>
-  <!-- Import map fixes the "Failed to resolve module specifier 'three'" error by mapping bare specifiers to CDN URLs -->
+
+  <!-- SVG toon filter defs (posterize + edge ink) -->
+  <svg width="0" height="0" style="position:absolute">
+    <filter id="toonify">
+      <!-- mild posterize -->
+      <feComponentTransfer color-interpolation-filters="sRGB">
+        <feFuncR type="discrete" tableValues="0 0.23 0.46 0.69 1"/>
+        <feFuncG type="discrete" tableValues="0 0.28 0.56 0.74 1"/>
+        <feFuncB type="discrete" tableValues="0 0.25 0.5  0.75 1"/>
+      </feComponentTransfer>
+      <!-- edge detect -->
+      <feConvolveMatrix order="3" kernelMatrix="
+          -1 -1 -1
+          -1  8 -1
+          -1 -1 -1" result="edges"/>
+      <feColorMatrix in="edges" type="matrix"
+        values="0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 1 0" />
+      <feBlend mode="multiply" in2="SourceGraphic"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 .9"/>
+      </feComponentTransfer>
+    </filter>
+
+    <filter id="toonify-strong">
+      <feComponentTransfer color-interpolation-filters="sRGB">
+        <feFuncR type="discrete" tableValues="0 0.18 0.36 0.54 0.72 0.9 1"/>
+        <feFuncG type="discrete" tableValues="0 0.2  0.4  0.6  0.8  0.9 1"/>
+        <feFuncB type="discrete" tableValues="0 0.18 0.36 0.54 0.72 0.9 1"/>
+      </feComponentTransfer>
+      <feConvolveMatrix order="3" kernelMatrix="
+          -1 -1 -1
+          -1  9 -1
+          -1 -1 -1" result="edgesStrong"/>
+      <feBlend mode="multiply" in="edgesStrong" in2="SourceGraphic"/>
+      <feColorMatrix type="saturate" values="1.25"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 1"/>
+      </feComponentTransfer>
+    </filter>
+  </svg>
+
+  <!-- Import map for three.js -->
   <script type="importmap">
     {
       "imports": {
@@ -91,6 +214,7 @@
     <nav>
       <a href="#mission">Mission</a>
       <a href="#projects">Projects</a>
+      <a href="#gallery">Gallery</a>
       <a href="#join">Join</a>
     </nav>
   </header>
@@ -113,7 +237,7 @@
       <span class="chip">🌿 Our Mission</span>
       <h2>Rewild cities, one pocket forest at a time</h2>
       <p>
-        We plant micro‑habitats, restore soil, and bring back pollinators. This demo shows a living identity system: the deeper you scroll, the lusher the world becomes.
+        We plant micro-habitats, restore soil, and bring back pollinators. This demo shows a living identity system: the deeper you scroll, the lusher the world becomes.
       </p>
       <p>
         Tech: Three.js + GLTF models, HDR lighting, bloom, particle fireflies, procedural vines. All effects respond to scroll depth.
@@ -130,11 +254,40 @@
     </div>
   </section>
 
+  <!-- NEW: Full-bleed, two-image interactive toon gallery -->
+  <section id="gallery" aria-label="Interactive toon gallery">
+    <div class="gal-wrap">
+      <!-- Image 1 -->
+      <figure class="toon-card" tabindex="0" data-tilt data-depth="18">
+        <span class="toon-badge">🐸 Neon Grove</span>
+        <img
+          class="toon-img"
+          alt="Blue poison dart frog crouched on moss"
+          src="https://upload.wikimedia.org/wikipedia/commons/1/17/Dendrobates_azureus_blue_poison_dart_frog.jpg"
+          loading="lazy" />
+        <i class="ink-outline" aria-hidden="true"></i>
+        <figcaption class="caption">Blue Dart Frog — CC BY-SA</figcaption>
+      </figure>
+
+      <!-- Image 2 -->
+      <figure class="toon-card" tabindex="0" data-tilt data-depth="14">
+        <span class="toon-badge">🌀 Fractal Sprout</span>
+        <img
+          class="toon-img"
+          alt="Close-up of romanesco broccoli showing fractal spirals"
+          src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Fractal_Broccoli.jpg"
+          loading="lazy" />
+        <i class="ink-outline" aria-hidden="true"></i>
+        <figcaption class="caption">Romanesco — CC BY-SA</figcaption>
+      </figure>
+    </div>
+  </section>
+
   <section id="join">
     <div class="card">
       <span class="chip">✨ Join</span>
       <h2>Volunteer, donate, or partner</h2>
-      <p>Buttons here could connect to forms, a shop, or a donation flow. Animations react to your actions with subtle nature‑fx.</p>
+      <p>Buttons here could connect to forms, a shop, or a donation flow. Animations react to your actions with subtle nature-fx.</p>
       <div style="display:flex; gap:1rem; flex-wrap: wrap; margin-top: 1rem;">
         <a class="cta" href="#">Volunteer</a>
         <a class="cta" href="#">Donate</a>
@@ -144,7 +297,11 @@
   </section>
 
   <footer>
-    <div class="fine">Models hot‑linked from public Three.js example assets for demo purposes. For production, self‑host assets to avoid CORS/rate limits. © You / CC0 assets credits inline in code.</div>
+    <div class="fine">
+      Models hot-linked from public Three.js example assets for demo purposes. For production, self-host assets to avoid CORS/rate limits.
+      <br/>Images: “Blue poison dart frog” &amp; “Romanesco” via Wikimedia Commons (CC BY-SA). Consider self-hosting and adding explicit credits/licenses.
+      <br/>© You / CC0 assets credits inline in code.
+    </div>
   </footer>
 
   <script type="module">
@@ -187,17 +344,32 @@
     const groundMat = new THREE.MeshStandardMaterial({ color: 0x0b3a2d, roughness: 1, metalness: 0, envMapIntensity: 0.1 });
     const ground = new THREE.Mesh(groundGeo, groundMat); ground.receiveShadow = true; scene.add(ground);
 
-    // HDRI environment (public threejs example texture)
+    // HDRI environment
     const pmrem = new THREE.PMREMGenerator(renderer);
-    pmrem.compileEquirectangularShader();
-    new RGBELoader().setDataType(THREE.UnsignedByteType).load(
-      'https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr',
-      (tex)=>{
-        const env = pmrem.fromEquirectangular(tex).texture;
-        scene.environment = env;
-        tex.dispose(); pmrem.dispose();
-      }
-    );
+pmrem.compileEquirectangularShader();
+
+// Use HalfFloat (fast, widely supported). FloatType also works.
+new RGBELoader()
+  .setDataType(THREE.HalfFloatType)
+  .load(
+    'https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr',
+    (hdr) => {
+      const envMap = pmrem.fromEquirectangular(hdr).texture;
+      scene.environment = envMap;
+      hdr.dispose();
+      pmrem.dispose();
+    },
+    undefined,
+    (err) => {
+      console.warn('HDR load failed, falling back to LDR env.', err);
+      // Minimal, safe fallback so your materials aren’t black:
+      const tex = new THREE.TextureLoader().load(
+        'https://threejs.org/examples/textures/equirectangular/venice_sunset_1k.hdr.jpg'
+      );
+      tex.mapping = THREE.EquirectangularReflectionMapping;
+      scene.environment = tex;
+    }
+  );
 
     // Post-processing
     const composer = new EffectComposer(renderer);
@@ -288,7 +460,7 @@
     });
     const fireflies = new THREE.Points(flyGeo, flyMat); scene.add(fireflies);
 
-    // ---------- Load external GLB nature‑adjacent models (birds) ----------
+    // ---------- Load external GLB birds ----------
     const loader = new GLTFLoader(); loader.setCrossOrigin('anonymous');
     const mixers = [];
     function loadBird(url, scale=1, pos=[0,1,0]){
@@ -311,10 +483,9 @@
     // ---------- Edge-anchored plants that grow with scroll ----------
     const edgeRig = new THREE.Group();
     camera.add(edgeRig);
-    scene.add(camera); // ensure camera (with children) is in the scene
+    scene.add(camera);
 
     function createEdgePlant(){
-      // Use the procedural plant as a stylized edge model (can be swapped with a GLB easily)
       const g = createPlant();
       g.traverse(o=>{ if(o.material){ o.material.emissive = new THREE.Color(0x0b4032); o.material.emissiveIntensity = 0.25; }});
       return g;
@@ -331,22 +502,19 @@
       const w = h * (innerWidth/innerHeight);
       leftEdge.position.set(-w/2 + edgeState.margin, -1.0, -d);
       rightEdge.position.set( w/2 - edgeState.margin, -1.0, -d);
-      // mirror one for variation
       rightEdge.scale.x = Math.abs(rightEdge.scale.x) * -1;
     }
-
     positionEdgeAnchors();
 
     function setEdgeGrowth(t){
-      const s = 0.25 + t*1.3; // grow from small to lush
+      const s = 0.25 + t*1.3;
       leftEdge.scale.set(s, s, s);
       rightEdge.scale.set(s, s, s);
-      // subtle sway
       leftEdge.rotation.z = Math.sin(performance.now()*0.0012)*0.05*(0.2+t);
       rightEdge.rotation.z = -Math.sin(performance.now()*0.001)*0.05*(0.2+t);
     }
 
-    // ---------- Scroll‑driven growth + subtle camera parallax ----------
+    // ---------- Scroll-driven growth + subtle camera parallax ----------
     let growth = 0, growthTarget = 0;
     function updateTarget(){
       const doc = document.documentElement;
@@ -374,7 +542,7 @@
 
       // lerp growth
       growth += (growthTarget - growth)*0.065;
-      const ease = (t)=> t<.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2; // cubic easeInOut
+      const ease = (t)=> t<.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
       const g = ease(growth);
 
       // apply to plants
@@ -406,6 +574,63 @@
       composer.render();
     }
     animate();
+
+    // ========== INTERACTION: 3D tilt / spring on gallery cards ==========
+    const cards = [...document.querySelectorAll('[data-tilt]')];
+    const state = new WeakMap();
+    const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+
+    function pointer(e, el){
+      const r = el.getBoundingClientRect();
+      const x = (e.clientX ?? (e.touches?.[0]?.clientX||0)) - r.left;
+      const y = (e.clientY ?? (e.touches?.[0]?.clientY||0)) - r.top;
+      return { x, y, w:r.width, h:r.height };
+    }
+
+    function onMove(e){
+      const el = e.currentTarget;
+      const p = pointer(e, el);
+      const nx = (p.x / p.w) * 2 - 1;   // -1..1
+      const ny = (p.y / p.h) * 2 - 1;
+      const depth = Number(el.dataset.depth || 16);
+      const rx = clamp(-ny * (depth*0.5), -10, 10);
+      const ry = clamp( nx * depth, -18, 18);
+      const z = 8 + Math.hypot(nx, ny)*4;
+
+      el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(${z}px)`;
+    }
+
+    function onEnter(e){
+      const el = e.currentTarget;
+      el.style.transition = 'transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease';
+      el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(10px)';
+      const img = el.querySelector('.toon-img');
+      img.style.willChange = 'transform, filter';
+    }
+
+    function onLeave(e){
+      const el = e.currentTarget;
+      el.style.transition = 'transform .6s cubic-bezier(.2,.8,.2,1)';
+      el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+    }
+
+    // gentle idle float
+    function drift(){
+      const t = performance.now()*0.0012;
+      cards.forEach((el,i)=>{
+        const k = 0.5 + i*0.13;
+        el.style.filter = `drop-shadow(0 ${Math.sin(t+k)*4}px ${16+Math.cos(t*0.7+k)*6}px rgba(0,255,170,.12))`;
+      });
+      requestAnimationFrame(drift);
+    }
+    drift();
+
+    cards.forEach(el=>{
+      el.addEventListener('pointermove', onMove);
+      el.addEventListener('pointerenter', onEnter);
+      el.addEventListener('pointerleave', onLeave);
+      el.addEventListener('touchmove', onMove, {passive:true});
+    });
   </script>
 </body>
 </html>
