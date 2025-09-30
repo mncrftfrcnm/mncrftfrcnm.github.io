@@ -30,15 +30,6 @@
       font-family: 'Nunito', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
       overflow-x: hidden;
     }
-    /* 2D flora sway */
-    @keyframes sway { 
-    0% { transform: translateZ(0) rotateZ(-2deg); } 
-    50% { transform: translateZ(0) rotateZ(2deg); } 
-    100% { transform: translateZ(0) rotateZ(-2deg); } 
-    }
-    #floraLayer use.leaf { transform-origin: 50% 100%; animation: sway 5s ease-in-out infinite; }
-    #floraLayer g.vine { animation: sway 9s ease-in-out infinite; }
-
     header {
       position: fixed; inset: 0 0 auto 0; z-index: 10;
       display: flex; align-items: center; justify-content: space-between;
@@ -78,127 +69,63 @@
     .cta { display: inline-flex; align-items: center; gap: .6rem; padding: .9rem 1.2rem; border-radius: 999px; border: 2px solid transparent; font-weight: 900; text-decoration: none; color:#03261f; background: linear-gradient(135deg, var(--leaf), var(--leaf-2)); box-shadow: 0 10px 40px rgba(0,255,170,.25); }
     .cta:hover { filter: brightness(1.05); box-shadow: 0 16px 46px rgba(0,255,170,.35); }
 
-    /* --- INTERACTIVE TOON GALLERY --- */
-    #gallery { padding: 8vh 0; min-height: 120svh; }
-    .gal-wrap {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(300px, 1fr));
-      gap: clamp(16px, 3vw, 32px);
-      align-items: stretch;
-      padding: 0 6vw;
-    }
-    @media (max-width: 900px){
-      .gal-wrap { grid-template-columns: 1fr; }
-    }
-    .toon-card {
-      position: relative;
-      aspect-ratio: 4/3;
-      border-radius: 28px;
-      overflow: hidden;
-      border: 1px solid rgba(168,255,206,.18);
-      background: linear-gradient(180deg, rgba(6,33,26,.6), rgba(3,17,13,.8));
-      box-shadow: 0 30px 80px rgba(0,0,0,.35), inset 0 0 120px rgba(168,255,206,.05);
-      transform-style: preserve-3d;
-      transition: box-shadow .3s ease, filter .3s ease;
-      cursor: pointer;
-      will-change: transform, filter;
-    }
-    .toon-card::after{
-      content: ""; position: absolute; inset: -20% -20% auto -20%; height: 60%;
-      background: radial-gradient(50% 50% at 30% 50%, rgba(168,255,206,.18), transparent 60%);
-      mix-blend-mode: screen; transform: translateZ(40px);
-      pointer-events: none;
-    }
-    .toon-img{
-      position: absolute; inset: 0;
-      width: 100%; height: 100%; object-fit: cover;
-      filter: url(#toonify);
-      transform: translateZ(20px) scale(1.02);
-      transition: transform .5s cubic-bezier(.2,.8,.2,1), filter .35s ease;
-    }
-    .ink-outline{
-      position: absolute; inset: 0; pointer-events: none;
-      background: radial-gradient(120% 120% at 50% 110%, rgba(0,0,0,.0), rgba(0,0,0,.35));
-      mix-blend-mode: multiply; opacity:.5; transform: translateZ(30px);
-    }
-    .toon-badge{
-      position: absolute; left: 16px; top: 16px; z-index: 3;
-      display:inline-flex; align-items:center; gap:.5rem;
-      padding:.45rem .7rem; font-weight:900; letter-spacing:.4px;
-      border-radius:999px; background: rgba(0,168,107,.22);
-      border:1px solid rgba(168,255,206,.3);
-      text-shadow: 0 0 10px rgba(0,0,0,.6);
-      transform: translateZ(50px);
-    }
-    .toon-card:is(:hover, :focus-visible){
-      box-shadow: 0 40px 120px rgba(0,255,170,.22);
-    }
-    .toon-card:is(:hover, :focus-visible) .toon-img{
-      transform: translateZ(26px) scale(1.06) rotateZ(.2deg);
-      filter: url(#toonify-strong) saturate(1.1);
-    }
-    .caption{
-      position: absolute; right: 16px; bottom: 14px; z-index: 3;
-      font-weight: 800; opacity: .92; transform: translateZ(50px);
-      text-shadow: 0 2px 10px rgba(0,0,0,.6);
-      background: rgba(3,25,20,.45);
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(168,255,206,.25);
-      border-radius: 12px; padding: .35rem .6rem;
-    }
-
     footer { padding: 6rem 8vw; text-align: center; color: #c8f7e6; opacity: .9; }
     .fine { font-size: .85rem; opacity: .8; }
 
     /* Small helpers */
     .hidden { display:none; }
+
+    /* ---------------- NEW: 2D toon sprites that fill every page section ---------------- */
+    .sprite-layer {
+      position: absolute; inset: 0; pointer-events: none; z-index: 3;
+      overflow: visible; /* so floaters can drift in/out */
+    }
+    .sprite {
+      position: absolute;
+      width: var(--s, 28px);
+      height: var(--s, 28px);
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+      will-change: transform;
+      transform: translate3d(0,0,0);
+      image-rendering: pixelated; /* crunchy toon vibe */
+      transition: transform .15s ease, filter .2s ease;
+    }
+    .sprite:hover { transform: scale(1.1); filter: drop-shadow(0 4px 14px rgba(0,0,0,.5)); }
+    .leaf2d {
+      background:
+        radial-gradient(100% 60% at 50% 30%, #d8ffe9 0 45%, transparent 46%),
+        linear-gradient(135deg, #16c287, #0c8a61);
+      -webkit-mask: radial-gradient(80% 50% at 50% 45%, black 60%, transparent 61%);
+      border-radius: 60% 40% 60% 40% / 50% 60% 40% 50%;
+      outline: 3px solid #03261f;
+      outline-offset: -2px;
+      animation: floatY var(--d,12s) ease-in-out infinite;
+    }
+    .bug2d {
+      --s: 20px;
+      background:
+        radial-gradient(50% 45% at 50% 30%, #fffee0 0 40%, transparent 41%),
+        radial-gradient(55% 45% at 50% 70%, #f2a 0 50%, #c06 52% 60%, transparent 61%),
+        radial-gradient(80% 80% at 50% 50%, #1a1a1a 5%, #2b2b2b 55%, transparent 57%);
+      border-radius: 60% 60% 50% 50%;
+      outline: 3px solid #03261f; outline-offset: -2px;
+      animation: flutter var(--d,6s) ease-in-out infinite;
+    }
+    .vine2d {
+      --s: 6px;
+      width: var(--s); height: var(--h, 220px);
+      background: linear-gradient(#0d5e4b, #0a4a3b);
+      border-radius: 999px;
+      outline: 3px solid #03261f; outline-offset: -2px;
+      animation: sway var(--d,10s) ease-in-out infinite;
+      transform-origin: top center;
+    }
+    @keyframes floatY { 0%,100% { translate: 0 -6px; } 50% { translate: 0 6px; } }
+    @keyframes flutter { 0%,100% { rotate: -6deg; translate:0 -4px; } 50% { rotate: 6deg; translate: 0 4px; } }
+    @keyframes sway { 0%,100% { rotate: -6deg; } 50% { rotate: 6deg; } }
   </style>
 
-  <!-- SVG toon filter defs (posterize + edge ink) -->
-  <svg width="0" height="0" style="position:absolute">
-    <filter id="toonify">
-      <!-- mild posterize -->
-      <feComponentTransfer color-interpolation-filters="sRGB">
-        <feFuncR type="discrete" tableValues="0 0.23 0.46 0.69 1"/>
-        <feFuncG type="discrete" tableValues="0 0.28 0.56 0.74 1"/>
-        <feFuncB type="discrete" tableValues="0 0.25 0.5  0.75 1"/>
-      </feComponentTransfer>
-      <!-- edge detect -->
-      <feConvolveMatrix order="3" kernelMatrix="
-          -1 -1 -1
-          -1  8 -1
-          -1 -1 -1" result="edges"/>
-      <feColorMatrix in="edges" type="matrix"
-        values="0 0 0 0 0
-                0 0 0 0 0
-                0 0 0 0 0
-                0 0 0 1 0" />
-      <feBlend mode="multiply" in2="SourceGraphic"/>
-      <feComponentTransfer>
-        <feFuncA type="table" tableValues="0 .9"/>
-      </feComponentTransfer>
-    </filter>
-
-    <filter id="toonify-strong">
-      <feComponentTransfer color-interpolation-filters="sRGB">
-        <feFuncR type="discrete" tableValues="0 0.18 0.36 0.54 0.72 0.9 1"/>
-        <feFuncG type="discrete" tableValues="0 0.2  0.4  0.6  0.8  0.9 1"/>
-        <feFuncB type="discrete" tableValues="0 0.18 0.36 0.54 0.72 0.9 1"/>
-      </feComponentTransfer>
-      <feConvolveMatrix order="3" kernelMatrix="
-          -1 -1 -1
-          -1  9 -1
-          -1 -1 -1" result="edgesStrong"/>
-      <feBlend mode="multiply" in="edgesStrong" in2="SourceGraphic"/>
-      <feColorMatrix type="saturate" values="1.25"/>
-      <feComponentTransfer>
-        <feFuncA type="table" tableValues="0 1"/>
-      </feComponentTransfer>
-    </filter>
-  </svg>
-
-  <!-- Import map for three.js -->
+  <!-- Import map -->
   <script type="importmap">
     {
       "imports": {
@@ -214,7 +141,6 @@
     <nav>
       <a href="#mission">Mission</a>
       <a href="#projects">Projects</a>
-      <a href="#gallery">Gallery</a>
       <a href="#join">Join</a>
     </nav>
   </header>
@@ -230,6 +156,8 @@
       <h1>Grow with every scroll</h1>
       <div class="subtitle">A playful eco site — plants sprout as you explore</div>
     </div>
+    <!-- NEW: sprite layer also on hero -->
+    <div class="sprite-layer" data-fill="hero"></div>
   </div>
 
   <section id="mission">
@@ -244,6 +172,8 @@
       </p>
       <a class="cta" href="#join">Get involved</a>
     </div>
+    <!-- NEW: 2D sprites fill this section too -->
+    <div class="sprite-layer" data-fill="mission"></div>
   </section>
 
   <section id="projects">
@@ -252,35 +182,8 @@
       <h2>From rooftop meadows to schoolyard jungles</h2>
       <p>Each project card could hook into CMS data. The scene reflects progress bars — more growth when milestones are met.</p>
     </div>
-  </section>
-
-  <!-- NEW: Full-bleed, two-image interactive toon gallery -->
-  <section id="gallery" aria-label="Interactive toon gallery">
-    <div class="gal-wrap">
-      <!-- Image 1 -->
-      <figure class="toon-card" tabindex="0" data-tilt data-depth="18">
-        <span class="toon-badge">🐸 Neon Grove</span>
-        <img
-          class="toon-img"
-          alt="Blue poison dart frog crouched on moss"
-          src="https://upload.wikimedia.org/wikipedia/commons/1/17/Dendrobates_azureus_blue_poison_dart_frog.jpg"
-          loading="lazy" />
-        <i class="ink-outline" aria-hidden="true"></i>
-        <figcaption class="caption">Blue Dart Frog — CC BY-SA</figcaption>
-      </figure>
-
-      <!-- Image 2 -->
-      <figure class="toon-card" tabindex="0" data-tilt data-depth="14">
-        <span class="toon-badge">🌀 Fractal Sprout</span>
-        <img
-          class="toon-img"
-          alt="Close-up of romanesco broccoli showing fractal spirals"
-          src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Fractal_Broccoli.jpg"
-          loading="lazy" />
-        <i class="ink-outline" aria-hidden="true"></i>
-        <figcaption class="caption">Romanesco — CC BY-SA</figcaption>
-      </figure>
-    </div>
+    <!-- NEW -->
+    <div class="sprite-layer" data-fill="projects"></div>
   </section>
 
   <section id="join">
@@ -294,14 +197,12 @@
         <a class="cta" href="#">Partner</a>
       </div>
     </div>
+    <!-- NEW -->
+    <div class="sprite-layer" data-fill="join"></div>
   </section>
 
   <footer>
-    <div class="fine">
-      Models hot-linked from public Three.js example assets for demo purposes. For production, self-host assets to avoid CORS/rate limits.
-      <br/>Images: “Blue poison dart frog” &amp; “Romanesco” via Wikimedia Commons (CC BY-SA). Consider self-hosting and adding explicit credits/licenses.
-      <br/>© You / CC0 assets credits inline in code.
-    </div>
+    <div class="fine">Models hot-linked from public glTF/GLB example assets for demo purposes. For production, self-host assets to avoid CORS/rate limits. © You / CC0 assets credits inline in code.</div>
   </footer>
 
   <script type="module">
@@ -344,32 +245,17 @@
     const groundMat = new THREE.MeshStandardMaterial({ color: 0x0b3a2d, roughness: 1, metalness: 0, envMapIntensity: 0.1 });
     const ground = new THREE.Mesh(groundGeo, groundMat); ground.receiveShadow = true; scene.add(ground);
 
-    // HDRI environment
+    // HDRI environment (public threejs example texture)
     const pmrem = new THREE.PMREMGenerator(renderer);
-pmrem.compileEquirectangularShader();
-
-// Use HalfFloat (fast, widely supported). FloatType also works.
-new RGBELoader()
-  .setDataType(THREE.HalfFloatType)
-  .load(
-    'https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr',
-    (hdr) => {
-      const envMap = pmrem.fromEquirectangular(hdr).texture;
-      scene.environment = envMap;
-      hdr.dispose();
-      pmrem.dispose();
-    },
-    undefined,
-    (err) => {
-      console.warn('HDR load failed, falling back to LDR env.', err);
-      // Minimal, safe fallback so your materials aren’t black:
-      const tex = new THREE.TextureLoader().load(
-        'https://threejs.org/examples/textures/equirectangular/venice_sunset_1k.hdr.jpg'
-      );
-      tex.mapping = THREE.EquirectangularReflectionMapping;
-      scene.environment = tex;
-    }
-  );
+    pmrem.compileEquirectangularShader();
+    new RGBELoader().setDataType(THREE.UnsignedByteType).load(
+      'https://threejs.org/examples/textures/equirectangular/royal_esplanade_1k.hdr',
+      (tex)=>{
+        const env = pmrem.fromEquirectangular(tex).texture;
+        scene.environment = env;
+        tex.dispose(); pmrem.dispose();
+      }
+    );
 
     // Post-processing
     const composer = new EffectComposer(renderer);
@@ -460,9 +346,37 @@ new RGBELoader()
     });
     const fireflies = new THREE.Points(flyGeo, flyMat); scene.add(fireflies);
 
-    // ---------- Load external GLB birds ----------
+    // ---------- Load external GLB models (NEW: frog + fish) ----------
     const loader = new GLTFLoader(); loader.setCrossOrigin('anonymous');
     const mixers = [];
+    function loadGLB(url, scale=1, pos=[0,0,0], onErrorFallback=null){
+      loader.load(url, (gltf)=>{
+        const root = gltf.scene;
+        root.traverse(o=>{ if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; }});
+        root.scale.setScalar(scale);
+        root.position.set(...pos);
+        scene.add(root);
+        if(gltf.animations && gltf.animations.length){
+          const mixer = new THREE.AnimationMixer(root);
+          gltf.animations.forEach(clip=> mixer.clipAction(clip).play());
+          mixers.push(mixer);
+        }
+      }, undefined, (err)=>{
+        if(onErrorFallback){ onErrorFallback(); }
+        else console.warn('GLB load fail', url, err);
+      });
+    }
+
+    // NEW: Frog (Poly Pizza listing provides GLTF). If hotlinking fails, we fall back to Fox.
+    const FROG_URL = 'https://cdn.poly.pizza/asset/07-wJ9bkzul.glb'; // Poly Pizza “Frog” by jeremy (GLTF/OBJ) — see notes below
+    const FOX_FALLBACK = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Fox/glTF-Binary/Fox.glb'; // sample animated fox
+    loadGLB(FROG_URL, 0.9, [-1.2, 0.02, 1.3], ()=> loadGLB(FOX_FALLBACK, 0.03, [-1.2, 0.02, 1.3]));
+
+    // NEW: Second 3D creature — Barramundi Fish (official sample)
+    const FISH_URL = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BarramundiFish/glTF-Binary/BarramundiFish.glb';
+    loadGLB(FISH_URL, 0.03, [2.0, 0.4, -1.0]);
+
+    // Existing birds stay
     function loadBird(url, scale=1, pos=[0,1,0]){
       loader.load(url, (gltf)=>{
         const root = gltf.scene; root.traverse(o=>{ if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; }});
@@ -476,11 +390,11 @@ new RGBELoader()
         }
       });
     }
-    loadBird('https://threejs.org/examples/models/gltf/Parrot.glb', 0.03, [-2.2, 2.0, -1.5]);
+    loadBird('https://threejs.org/examples/models/gltf/Parrot.glb',   0.03, [-2.2, 2.0, -1.5]);
     loadBird('https://threejs.org/examples/models/gltf/Flamingo.glb', 0.03, [ 2.6, 2.4,  0.8]);
-    loadBird('https://threejs.org/examples/models/gltf/Stork.glb', 0.03, [ 0.0, 3.1, -2.2]);
+    loadBird('https://threejs.org/examples/models/gltf/Stork.glb',    0.03, [ 0.0, 3.1, -2.2]);
 
-    // ---------- Edge-anchored plants that grow with scroll ----------
+    // ---------- Edge-anchored plants (unchanged) ----------
     const edgeRig = new THREE.Group();
     camera.add(edgeRig);
     scene.add(camera);
@@ -490,7 +404,6 @@ new RGBELoader()
       g.traverse(o=>{ if(o.material){ o.material.emissive = new THREE.Color(0x0b4032); o.material.emissiveIntensity = 0.25; }});
       return g;
     }
-
     const leftEdge = createEdgePlant();
     const rightEdge = createEdgePlant();
     edgeRig.add(leftEdge); edgeRig.add(rightEdge);
@@ -514,6 +427,63 @@ new RGBELoader()
       rightEdge.rotation.z = -Math.sin(performance.now()*0.001)*0.05*(0.2+t);
     }
 
+    // ---------------- NEW: Two toon-shaded trees, one on each side ----------------
+    const toonGrad = (() => {
+      // Small 1D gradient map to quantize shading for MeshToonMaterial
+      const data = new Uint8Array([ 30,30,30,  80,80,80,  150,150,150,  220,220,220 ]);
+      const tex = new THREE.DataTexture(data, 4, 1, THREE.RGBFormat);
+      tex.needsUpdate = true;
+      return tex;
+    })();
+
+    function makeTree({ trunkH=2.6, trunkR=0.12, canopyR=0.9 } = {}){
+      const g = new THREE.Group();
+      const trunkGeo = new THREE.CylinderGeometry(trunkR*0.7, trunkR, trunkH, 7);
+      const trunkMat = new THREE.MeshToonMaterial({ color: 0x2a4b3a, gradientMap: toonGrad });
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat); trunk.castShadow = true; trunk.position.y = trunkH/2;
+      g.add(trunk);
+
+      const canopyMat = new THREE.MeshToonMaterial({ color: 0x1dc287, gradientMap: toonGrad });
+      const bubbleGeo = new THREE.IcosahedronGeometry(canopyR, 1);
+      for(let i=0;i<5;i++){
+        const b = new THREE.Mesh(bubbleGeo, canopyMat);
+        const ang = i/5 * Math.PI*2;
+        b.position.set(Math.cos(ang)*canopyR*0.5, trunkH + 0.2 + Math.random()*0.2, Math.sin(ang)*canopyR*0.5);
+        b.scale.setScalar(THREE.MathUtils.randFloat(0.9,1.2));
+        b.castShadow = true; b.receiveShadow = true;
+        g.add(b);
+      }
+      g.userData.base = { trunkH, canopyR };
+      return g;
+    }
+
+    const treeRig = new THREE.Group();
+    camera.add(treeRig);
+
+    const treeL = makeTree();
+    const treeR = makeTree();
+    treeRig.add(treeL); treeRig.add(treeR);
+
+    function positionTrees(){
+      const d = 3.0;
+      const h = 2 * d * Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+      const w = h * (innerWidth/innerHeight);
+      treeL.position.set(-w/2 + 0.8, -1.0, -d);
+      treeR.position.set( w/2 - 0.8, -1.0, -d);
+      treeR.scale.x = -1; // mirror for variety
+    }
+    positionTrees();
+
+    function setTreeGrowth(t){
+      // "grow the lower the user scrolls" (deeper scroll => bigger)
+      const s = 0.6 + t * 1.5;
+      treeL.scale.set(s, s, s);
+      treeR.scale.set(s, s, s);
+      // gentle wind
+      treeL.rotation.z = Math.sin(performance.now()*0.0011) * 0.03*(0.6+t);
+      treeR.rotation.z = -Math.sin(performance.now()*0.0010) * 0.03*(0.6+t);
+    }
+
     // ---------- Scroll-driven growth + subtle camera parallax ----------
     let growth = 0, growthTarget = 0;
     function updateTarget(){
@@ -531,7 +501,60 @@ new RGBELoader()
       composer.setSize(innerWidth, innerHeight);
       bloom.setSize(innerWidth, innerHeight);
       positionEdgeAnchors();
+      positionTrees();
     });
+
+    // ---------------- NEW: 2D sprite generator across ALL sections ----------------
+    function spawnSprites(){
+      const layers = document.querySelectorAll('.sprite-layer');
+      layers.forEach((layer, idx)=>{
+        const rect = layer.getBoundingClientRect();
+        const width = rect.width || innerWidth;
+        const height = layer.parentElement?.offsetHeight || innerHeight;
+        const N = Math.max(16, Math.floor(width*height / 40000)); // density by area
+
+        // Random leaves
+        for(let i=0;i<N;i++){
+          const e = document.createElement('div');
+          e.className = 'sprite leaf2d';
+          const s = 24 + Math.random()*32;
+          e.style.setProperty('--s', s+'px');
+          e.style.left = (Math.random()*100)+'%';
+          e.style.top = (Math.random()*100)+'%';
+          e.style.setProperty('--d', (10+Math.random()*8)+'s');
+          layer.appendChild(e);
+        }
+        // Occasional vines
+        for(let i=0;i<Math.max(2, Math.floor(N/8)); i++){
+          const v = document.createElement('div');
+          v.className = 'sprite vine2d';
+          v.style.left = (Math.random()*100)+'%';
+          v.style.top = (-10 + Math.random()*10)+'%';
+          v.style.setProperty('--h', (140 + Math.random()*260)+'px');
+          v.style.setProperty('--d', (8+Math.random()*9)+'s');
+          layer.appendChild(v);
+        }
+        // Bugs
+        for(let i=0;i<Math.max(3, Math.floor(N/6)); i++){
+          const b = document.createElement('div');
+          b.className = 'sprite bug2d';
+          b.style.left = (Math.random()*100)+'%';
+          b.style.top = (Math.random()*100)+'%';
+          b.style.setProperty('--d', (5+Math.random()*5)+'s');
+          layer.appendChild(b);
+        }
+      });
+
+      // Parallax on scroll
+      addEventListener('scroll', ()=>{
+        const t = (scrollY / ((document.documentElement.scrollHeight - innerHeight)||1));
+        document.querySelectorAll('.sprite-layer').forEach((layer, i)=>{
+          const p = (i%2===0? 1 : -1) * t * 20; // alternate direction
+          layer.style.transform = `translateY(${p}px)`;
+        });
+      }, { passive:true });
+    }
+    spawnSprites();
 
     // ---------- Animate ----------
     const clock = new THREE.Clock();
@@ -540,14 +563,15 @@ new RGBELoader()
       const dt = clock.getDelta();
       mixers.forEach(m=>m.update(dt));
 
-      // lerp growth
       growth += (growthTarget - growth)*0.065;
       const ease = (t)=> t<.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
       const g = ease(growth);
 
-      // apply to plants
       for(const p of plants) setPlantGrowth(p, g);
       setEdgeGrowth(g);
+
+      // NEW: side trees scale with scroll depth
+      setTreeGrowth(g);
 
       // parallax camera + light
       camera.position.x = Math.sin(g*2.4)*0.6;
@@ -574,63 +598,6 @@ new RGBELoader()
       composer.render();
     }
     animate();
-
-    // ========== INTERACTION: 3D tilt / spring on gallery cards ==========
-    const cards = [...document.querySelectorAll('[data-tilt]')];
-    const state = new WeakMap();
-    const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-
-    function pointer(e, el){
-      const r = el.getBoundingClientRect();
-      const x = (e.clientX ?? (e.touches?.[0]?.clientX||0)) - r.left;
-      const y = (e.clientY ?? (e.touches?.[0]?.clientY||0)) - r.top;
-      return { x, y, w:r.width, h:r.height };
-    }
-
-    function onMove(e){
-      const el = e.currentTarget;
-      const p = pointer(e, el);
-      const nx = (p.x / p.w) * 2 - 1;   // -1..1
-      const ny = (p.y / p.h) * 2 - 1;
-      const depth = Number(el.dataset.depth || 16);
-      const rx = clamp(-ny * (depth*0.5), -10, 10);
-      const ry = clamp( nx * depth, -18, 18);
-      const z = 8 + Math.hypot(nx, ny)*4;
-
-      el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(${z}px)`;
-    }
-
-    function onEnter(e){
-      const el = e.currentTarget;
-      el.style.transition = 'transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease';
-      el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(10px)';
-      const img = el.querySelector('.toon-img');
-      img.style.willChange = 'transform, filter';
-    }
-
-    function onLeave(e){
-      const el = e.currentTarget;
-      el.style.transition = 'transform .6s cubic-bezier(.2,.8,.2,1)';
-      el.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
-    }
-
-    // gentle idle float
-    function drift(){
-      const t = performance.now()*0.0012;
-      cards.forEach((el,i)=>{
-        const k = 0.5 + i*0.13;
-        el.style.filter = `drop-shadow(0 ${Math.sin(t+k)*4}px ${16+Math.cos(t*0.7+k)*6}px rgba(0,255,170,.12))`;
-      });
-      requestAnimationFrame(drift);
-    }
-    drift();
-
-    cards.forEach(el=>{
-      el.addEventListener('pointermove', onMove);
-      el.addEventListener('pointerenter', onEnter);
-      el.addEventListener('pointerleave', onLeave);
-      el.addEventListener('touchmove', onMove, {passive:true});
-    });
   </script>
 </body>
 </html>
