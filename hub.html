@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hub World</title>
+  <meta name="description" content="A playful 3D hub-world that links to pages across the site." />
+  <style>
+    html, body { height: 100%; margin: 0; }
+    body { background: radial-gradient(1200px 600px at 50% 10%, #dfe9ff 0%, #b9d1ff 40%, #8fb1ff 70%, #6c89d8 100%); font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif; color: #0b1220; }
+    #scene { position: fixed; inset: 0; }
+
+    /* Overlay UI */
+    .hud { position: fixed; inset: 0; pointer-events: none; display: grid; align-content: space-between; padding: 16px; }
+    .hud .top { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+    .hud .pill { pointer-events: auto; background: rgba(255,255,255,0.86); backdrop-filter: blur(8px); border: 1px solid rgba(0,0,0,0.08); border-radius: 20px; padding: 10px 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+    .hud h1 { margin: 0; font-weight: 700; font-size: 18px; letter-spacing: 0.2px; }
+    .hud p  { margin: 0; font-size: 13px; opacity: 0.8; }
+    .hud .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: #111827; color: white; border-radius: 6px; padding: 2px 6px; }
+    .legend { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .linklist { position: fixed; right: 16px; bottom: 16px; pointer-events: auto; max-width: 320px; }
+    .linklist details { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 10px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); }
+    .linklist summary { cursor: pointer; font-weight: 600; }
+    .linklist a { display: block; padding: 6px 0; color: #0b1220; text-decoration: none; }
+    .linklist a:hover { text-decoration: underline; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: rgba(0,0,0,0.76); color: #fff; border-radius: 10px; padding: 8px 12px; font-size: 12px; opacity: 0; transition: opacity .25s ease; pointer-events: none; }
+    .toast.show { opacity: 1; }
+
+    /* Accessibility: reduce motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      .rotor { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="scene" aria-label="3D hub world"></canvas>
+
+  <!-- Overlay HUD -->
+  <div class="hud" aria-hidden="true">
+    <div class="top">
+      <div class="pill">
+        <h1>Hub World</h1>
+        <p>Drag to look • Scroll to zoom • Click a portal to enter</p>
+      </div>
+      <div class="pill legend">
+        <span class="kbd">Drag</span> orbit
+        <span class="kbd">Shift</span> slow
+        <span class="kbd">R</span> reset view
+      </div>
+    </div>
+  </div>
+
+  <!-- Fallback / quick nav -->
+  <nav class="linklist">
+    <details>
+      <summary>Quick links</summary>
+      <!-- Update these hrefs to match your repo structure -->
+      <a href="index.html">Home</a>
+      <a href="nyancat.html">Nyan Cat</a>
+      <a href="threed.html">3D Experiments</a>
+      <a href="cube_site.html">Cube Site</a>
+      <a href="tclinvbrowser.html">Tcl Interpreter in Browser</a>
+      <a href="windows/win95.html">Windows 95 (new)</a>
+      <a href="windows/win7.html">Windows 7 (new)</a>
+      <a href="labs/directx-showcase.html">DirectX Showcase (new)</a>
+      <a href="labs/aero-glass.html">Aero Glass Demo (new)</a>
+      <a href="labs/bootsounds.html">Boot Sounds (new)</a>
+    </details>
+  </nav>
+
+  <div id="toast" class="toast" role="status" aria-live="polite">Link copied</div>
+
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x93b0ff, 40, 180);
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 500);
+    camera.position.set(0, 10, 26);
+
+    // Controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.06;
+    controls.minDistance = 6; controls.maxDistance = 120;
+    controls.maxPolarAngle = Math.PI * 0.49;
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const sun = new THREE.DirectionalLight(0xffffff, 0.8); sun.position.set(10, 20, 10); scene.add(sun);
+    const hemi = new THREE.HemisphereLight(0xbdd6ff, 0x9ab0d8, 0.5); scene.add(hemi);
+
+    // Ground
+    const groundGeo = new THREE.CircleGeometry(60, 48);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0xeaf1ff, roughness: 1, metalness: 0 });
+    const ground = new THREE.Mesh(groundGeo, groundMat); ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+    const grid = new THREE.GridHelper(120, 120, 0xffffff, 0xffffff); grid.material.opacity = 0.15; grid.material.transparent = true; scene.add(grid);
+
+    // Floating ring at center for vibe
+    const ringGeo = new THREE.TorusGeometry(2.2, 0.18, 16, 80);
+    const ring = new THREE.Mesh(ringGeo, new THREE.MeshStandardMaterial({ color: 0x2952ff, metalness: 0.4, roughness: 0.35 }));
+    ring.position.y = 2.5; scene.add(ring);
+
+    // Utility: text texture generator
+    function textTexture(label, opts={}) {
+      const { w=600, h=340, fg='#0b1220', bg='#ffffff', sub } = opts;
+      const c = document.createElement('canvas'); c.width=w; c.height=h; const g=c.getContext('2d');
+      const r=20; g.fillStyle=bg; g.roundRect?.(0,0,w,h,r) || (g.fillRect(0,0,w,h)); g.fill();
+      g.fillStyle='#00000014'; for (let i=0;i<6;i++){ g.beginPath(); g.arc(w*(Math.random()), h*(Math.random()), 2+Math.random()*3, 0, Math.PI*2); g.fill(); }
+      g.fillStyle=fg; g.font='700 46px Inter, Segoe UI, Roboto, sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(label, w/2, h/2 - (sub?20:0));
+      if (sub){ g.globalAlpha=0.8; g.font='400 22px Inter, Segoe UI, Roboto, sans-serif'; g.fillText(sub, w/2, h/2 + 28); g.globalAlpha=1; }
+      const tx = new THREE.CanvasTexture(c); tx.anisotropy = 8; return tx;
+    }
+
+    // Create a portal: a framed sign you can click
+    function createPortal({ label, sub, href, color=0x2952ff, x=0, z=0 }) {
+      const group = new THREE.Group(); group.position.set(x, 0, z);
+
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(8.2, 4.8, 0.35),
+        new THREE.MeshStandardMaterial({ color, metalness: 0.2, roughness: 0.5 })
+      );
+      frame.position.y = 3.2; group.add(frame);
+
+      const board = new THREE.Mesh(
+        new THREE.PlaneGeometry(7.6, 4.2),
+        new THREE.MeshStandardMaterial({ map: textTexture(label, { sub, bg:'#ffffff', fg:'#0b1220' }) })
+      );
+      board.position.y = 3.2; board.position.z = 0.2; board.userData.href = href; board.name = `portal:${label}`;
+      group.add(board);
+
+      const plinth = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.6, 2.2, 1.2, 24),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1 })
+      );
+      plinth.position.y = 0.6; group.add(plinth);
+
+      // Idle animation
+      const rotor = new THREE.Mesh(new THREE.TorusKnotGeometry(0.4, 0.15, 70, 14), new THREE.MeshStandardMaterial({ color, metalness: 0.7, roughness: 0.2 }));
+      rotor.position.set(0, 6.6, 0); rotor.name = 'rotor'; group.add(rotor);
+
+      scene.add(group);
+      return group;
+    }
+
+    // Define your portals here. Update hrefs to match your repo.
+    const portals = [
+      { label: 'Home', sub: 'Index', href: 'index.html', color: 0x2952ff, x: 0, z: -12 },
+      { label: 'Nyan Cat', sub: 'Fun Demo', href: 'nyancat.html', color: 0xff5c93, x: -16, z: -4 },
+      { label: '3D Experiments', sub: 'Canvas + WebGL', href: 'threed.html', color: 0x22aa99, x: 16, z: -4 },
+      { label: 'Cube Site', sub: 'CSS 3D', href: 'cube_site.html', color: 0x9966ff, x: -16, z: 10 },
+      { label: 'Tcl in Browser', sub: 'Playground', href: 'tclinvbrowser.html', color: 0xff9900, x: 16, z: 10 },
+      // New pages (create these stubs in your repo):
+      { label: 'Boot Sounds', sub: 'Soundboard', href: 'labs/bootsounds.html', color: 0x1f8b4c, x: 0, z: 12 },
+      { label: 'Aero Glass', sub: 'UI Demo', href: 'labs/aero-glass.html', color: 0x2d89ef, x: -8, z: -18 },
+      { label: 'DirectX Showcase', sub: 'Teapot & Shaders', href: 'labs/directx-showcase.html', color: 0x7e57c2, x: 8, z: -18 },
+      { label: 'Windows 95', sub: 'Feature Tour', href: 'windows/win95.html', color: 0x00b294, x: -26, z: -8 },
+      { label: 'Windows 7', sub: 'Feature Tour', href: 'windows/win7.html', color: 0x107c10, x: 26, z: -8 }
+    ].map(createPortal);
+
+    // Subtle environmental dressing
+    function makeTree(x, z){
+      const t = new THREE.Group();
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.6,3,8), new THREE.MeshStandardMaterial({ color: 0x8b5a2b }));
+      const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(2.2, 0), new THREE.MeshStandardMaterial({ color: 0x2e7d32, roughness: 1 }));
+      trunk.position.y=1.5; crown.position.y=4.1; t.add(trunk, crown); t.position.set(x,0,z); scene.add(t);
+    }
+    for (let i=0;i<18;i++) { makeTree((Math.random()-0.5)*100, (Math.random()-0.2)*100); }
+
+    // Raycasting for clicks / hover
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let hovered = null;
+
+    function setHover(obj){
+      if (hovered === obj) return;
+      if (hovered) hovered.material.emissive && (hovered.material.emissive.setHex(0x000000));
+      hovered = obj;
+      if (hovered && hovered.material && 'emissive' in hovered.material) hovered.material.emissive.setHex(0x222222);
+      canvas.style.cursor = hovered ? 'pointer' : 'grab';
+    }
+
+    function pointerNDCCoords(e){
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    window.addEventListener('mousemove', (e)=>{
+      pointerNDCCoords(e);
+      raycaster.setFromCamera(mouse, camera);
+      const boards = [];
+      scene.traverse(o=>{ if (o.name.startsWith?.('portal:')) boards.push(o); });
+      const hit = raycaster.intersectObjects(boards, true)[0]?.object || null;
+      setHover(hit);
+    });
+
+    window.addEventListener('click', (e)=>{
+      if (!hovered) return;
+      const href = hovered.userData.href;
+      if (href) {
+        // If user holds Ctrl/Cmd, copy link instead
+        if (e.metaKey || e.ctrlKey) { navigator.clipboard?.writeText(location.origin + location.pathname.replace(/\/[^/]*$/, '/') + href); toast('Link copied'); return; }
+        location.href = href;
+      }
+    });
+
+    window.addEventListener('keydown', (e)=>{
+      if (e.key.toLowerCase() === 'r') { camera.position.set(0,10,26); controls.target.set(0,1.5,0); }
+    });
+
+    // Animate
+    const clock = new THREE.Clock();
+    function animate(){
+      const t = clock.getElapsedTime();
+      portals.forEach(g=>{
+        const r = g.getObjectByName('rotor'); if (r){ r.rotation.x = t*0.6; r.rotation.y = t*0.8; }
+      });
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Resize handler
+    addEventListener('resize', ()=>{ camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+    // Tiny toast
+    const toastEl = document.getElementById('toast');
+    let toastTimer;
+    function toast(msg){
+      clearTimeout(toastTimer); toastEl.textContent = msg; toastEl.classList.add('show');
+      toastTimer = setTimeout(()=>toastEl.classList.remove('show'), 1200);
+    }
+  </script>
+</body>
+</html>
