@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scrolling Desktop Cube • Compiz-style</title>
+  <style>
+    :root {
+      --cube-size: min(60vmin, 520px);
+      --perspective: 1300px;
+      --bg-grid: 24px;
+      --accent: #5ac8fa;
+      --accent-2: #9b59b6;
+      --glass: rgba(18,18,28,0.55);
+      --glass-strong: rgba(18,18,28,0.82); /* less transparent */
+      --frost-blur: 16px; /* stronger blur */
+      --border: rgba(255,255,255,0.08);
+      --shadow: 0 30px 70px rgba(0,0,0,.45), 0 10px 25px rgba(0,0,0,.35);
+      --ease-plasma: cubic-bezier(.2,.8,.2,1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      color: #e9ecf1;
+      background:
+        radial-gradient(1000px 600px at 10% -10%, rgba(147, 197, 253,.25), transparent 40%),
+        radial-gradient(1000px 600px at 90% 110%, rgba(147, 197, 253,.2), transparent 40%),
+        linear-gradient(180deg, #0c0f17, #0b1020 40%, #0a0f1a);
+      font: 16px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      overflow-y: scroll;
+    }
+
+    /* subtle grid like a compositor backdrop */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none;
+      background:
+        linear-gradient(transparent calc(var(--bg-grid) - 1px), rgba(255,255,255,0.05) 0),
+        linear-gradient(90deg, transparent calc(var(--bg-grid) - 1px), rgba(255,255,255,0.05) 0);
+      background-size: var(--bg-grid) var(--bg-grid), var(--bg-grid) var(--bg-grid);
+      mask: radial-gradient(ellipse at 50% 50%, black 50%, transparent 80%);
+    }
+
+    header.banner {
+      position: relative;
+      z-index: 5;
+      padding: clamp(18px, 4vh, 36px) 18px 12px;
+      text-align: center;
+    }
+    header.banner h1 { margin: 0; font-weight: 700; letter-spacing: .4px; }
+    header.banner p { opacity: .8; margin: .3rem 0 0; }
+
+    /* The cube stays centered and visible while the page scrolls */
+    .scene {
+      position: fixed; inset: 0; height: 100vh; isolation: isolate;
+      perspective: var(--perspective);
+      display: grid; place-items: center;
+      z-index: 10; /* below windows, above background */
+    }
+
+    .cube-wrap { position: relative; width: var(--cube-size); height: var(--cube-size); }
+
+    .cube {
+      position: absolute; inset: 0; margin: auto;
+      transform-style: preserve-3d;
+      will-change: transform;
+      transition: transform 60ms linear; /* keeps it crisp during small scrolls */
+    }
+
+    .face {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      display: grid; place-items: center;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+      backface-visibility: hidden;
+    }
+    .face::after { /* light sheen */
+      content: ""; position: absolute; inset: 0; border-radius: 12px;
+      background: radial-gradient(120% 85% at 110% -10%, rgba(255,255,255,.25), transparent 55%);
+      pointer-events: none;
+    }
+
+    .label {
+      position: absolute; top: 10px; left: 12px; opacity: .65; font-size: 12px; letter-spacing: .1em; text-transform: uppercase;
+    }
+
+    .face-content { width: 85%; max-width: 90%; display: grid; gap: 10px; justify-items: center; }
+
+    .cube-btn {
+      padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(50,70,120,.35), rgba(30,40,70,.35));
+      color: #eaf6ff; cursor: pointer;
+      transition: transform .12s var(--ease-plasma), box-shadow .12s var(--ease-plasma), background .12s;
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      backdrop-filter: blur(3px) saturate(120%);
+      -webkit-backdrop-filter: blur(3px) saturate(120%);
+    }
+    .cube-btn:hover { transform: translateY(-1px); }
+    .cube-btn:active { transform: translateY(0); }
+
+    /* Position cube faces */
+    .front  { transform: translateZ(calc(var(--cube-size) / 2)); }
+    .back   { transform: rotateY(180deg) translateZ(calc(var(--cube-size) / 2)); }
+    .right  { transform: rotateY(90deg) translateZ(calc(var(--cube-size) / 2)); }
+    .left   { transform: rotateY(-90deg) translateZ(calc(var(--cube-size) / 2)); }
+    .top    { transform: rotateX(90deg) translateZ(calc(var(--cube-size) / 2)); }
+    .bottom { transform: rotateX(-90deg) translateZ(calc(var(--cube-size) / 2)); }
+
+    /* A subtle floor shadow under the cube */
+    .shadow {
+      position: absolute; left: 50%; top: 55%; translate: -50% 0;
+      width: calc(var(--cube-size) * 0.9); height: calc(var(--cube-size) * 0.2);
+      background: radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,.55) 0, rgba(0,0,0,0) 70%);
+      filter: blur(20px); opacity: .6; transform: rotateX(90deg); pointer-events: none;
+    }
+
+    /* Desktop windows */
+    .desktop { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+
+    .window {
+      position: fixed; top: 50%; left: 50%;
+      width: min(560px, 92vw); max-height: min(70vh, 680px);
+      color: #e9ecf1;
+      background: linear-gradient(180deg, rgba(20,20,30,0.85), rgba(20,20,30,0.78)); /* less transparent, still glassy */
+      border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden; display: grid; grid-template-rows: auto 1fr;
+      backdrop-filter: blur(var(--frost-blur)) saturate(135%); /* KDE-ish frosted */
+      -webkit-backdrop-filter: blur(var(--frost-blur)) saturate(135%);
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+    }
+    .window[hidden] { display: none; }
+
+    .titlebar {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border-bottom: 1px solid var(--border);
+      cursor: grab; user-select: none;
+    }
+    .titlebar:active { cursor: grabbing; }
+
+    .titlebar .traffic { display: flex; gap: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 999px; border: 1px solid rgba(0,0,0,.25); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+    .dot.close { background: #ff5f56; }
+    .dot.min   { background: #ffbd2e; }
+    .dot.max   { background: #27c93f; }
+
+    .titlebar h3 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: .2px; opacity: .9; }
+
+    .win-body { padding: 14px 14px 18px; overflow: auto; }
+
+    /* KDE Plasma-like open/close animations */
+    @keyframes plasmaOpen {
+      0% { opacity: 0; transform: translate(calc(-50% + var(--from-x,0px)), calc(-50% + var(--from-y,0px))) scale(.88); filter: blur(6px); }
+      60% { opacity: 1; filter: blur(0.5px); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+    }
+    @keyframes plasmaClose {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--from-x,0px)), calc(-50% + var(--from-y,0px))) scale(.88); filter: blur(6px); }
+    }
+
+    .opening { animation: plasmaOpen 380ms var(--ease-plasma) both; }
+    .closing { animation: plasmaClose 260ms var(--ease-plasma) both; }
+
+    /* Accessibility: reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .cube { transition: none; }
+      .opening, .closing { animation: none; }
+    }
+
+    /* helper text sections to add scroll space */
+    .scroll-space { height: 500vh; position: relative; }
+    .hint {
+      position: absolute; left: 50%; transform: translateX(-50%); color: #cfe6ff; opacity: .85;
+      background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px;
+      backdrop-filter: blur(6px) saturate(125%);
+      -webkit-backdrop-filter: blur(6px) saturate(125%);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .hint.top { top: 24vh; }
+    .hint.bottom { bottom: 22vh; }
+
+    /* footer */
+    footer { text-align: center; padding: 80px 16px 120px; opacity: .7; }
+  </style>
+</head>
+<body>
+  <header class="banner" aria-hidden="true">
+    <h1>Compiz-Style Scrolling Cube</h1>
+    <p>Scroll to rotate the cube. Click buttons on faces to open KDE Plasma–style windows. The cube stays centered as you scroll.</p>
+  </header>
+
+  <div class="scene" aria-label="3D desktop cube">
+    <div class="cube-wrap" aria-hidden="true">
+      <div class="cube" id="cube">
+        <div class="face front">
+          <span class="label">Front</span>
+          <div class="face-content">
+            <button class="cube-btn" data-title="Welcome" data-content="<p>This demo mimics the classic Compiz Desktop Cube. As you scroll, the cube rotates. Buttons on faces spawn draggable windows with a KDE Plasma–style open animation.</p>">Open Welcome</button>
+            <button class="cube-btn" data-title="About the Cube" data-content="<p>The cube is a true cube (equal width/height/depth) and rotates in 3D with perspective. Faces accept clicks and content.</p>">About</button>
+          </div>
+        </div>
+        <div class="face back">
+          <span class="label">Back</span>
+          <div class="face-content">
+            <button class="cube-btn" data-title="Back Face" data-content="<p>You found the back face. Try dragging windows by their titlebars. Press <kbd>Esc</kbd> to close the topmost.</p>">Open Back Note</button>
+          </div>
+        </div>
+        <div class="face right">
+          <span class="label">Right</span>
+          <div class="face-content">
+            <button class="cube-btn" data-title="Right Face" data-content="<p>Windows are layered; clicking a window brings it to the front.</p>">Open Right</button>
+          </div>
+        </div>
+        <div class="face left">
+          <span class="label">Left</span>
+          <div class="face-content">
+            <button class="cube-btn" data-title="Left Face" data-content="<p>Windows use heavier blur and are less transparent now. Close them with the red button.</p>">Open Left</button>
+          </div>
+        </div>
+        <div class="face top">
+          <span class="label">Top</span>
+          <div class="face-content">
+            <button class="cube-btn" data-title="Top Face" data-content="<p>KDE-style opening animation: scale+fade with light blur, easing tuned to feel close to Plasma.</p>">Open Top</button>
+          </div>
+        </div>
+        <div class="face bottom">
+          <span class="label">Bottom</span>
+          <div class="face-content">
+            <button class="cube-btn" data-title="Bottom Face" data-content="<p>The cube remains in the middle of the screen while the page scrolls.</p>">Open Bottom</button>
+          </div>
+        </div>
+        <div class="shadow"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-space">
+
+  </div>
+
+  <!-- Desktop windows mount here -->
+  <div class="desktop" id="desktop" aria-live="polite" aria-relevant="additions removals"></div>
+
+  <footer>
+    Made with HTML + CSS + JS · Not affiliated with GNOME/KDE · For demo purposes only.
+  </footer>
+
+  <script>
+    // ======= Cube Scroll Rotation =======
+    const cube = document.getElementById('cube');
+
+    function updateCubeRotation() {
+      const doc = document.documentElement;
+      const maxScroll = (doc.scrollHeight - window.innerHeight) || 1;
+      const ratio = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+
+      // Map scroll 0..1 to degrees. 0..720deg Y and a subtle X wobble for depth.
+      const degY = 720 * ratio; // two full revolutions across entire page
+      const degX = 18 * Math.sin(ratio * Math.PI * 2); // subtle tilt
+
+      cube.style.transform = `rotateX(${degX}deg) rotateY(${degY}deg)`;
+    }
+
+    updateCubeRotation();
+    window.addEventListener('scroll', updateCubeRotation, { passive: true });
+    window.addEventListener('resize', updateCubeRotation);
+
+    // ======= KDE Plasma–like Windows =======
+    const desktop = document.getElementById('desktop');
+    let zCounter = 10;
+
+    function bringToFront(win) { win.style.zIndex = ++zCounter; }
+
+    function createWindow({ title, html, fromX = 0, fromY = 0 }) {
+      const win = document.createElement('section');
+      win.className = 'window opening';
+      win.style.setProperty('--from-x', `${fromX}px`);
+      win.style.setProperty('--from-y', `${fromY}px`);
+      win.setAttribute('role', 'dialog');
+      win.setAttribute('aria-modal', 'false');
+
+      win.innerHTML = `
+        <div class="titlebar">
+          <div class="traffic">
+            <button class="dot close" aria-label="Close"></button>
+            <button class="dot min" aria-label="Minimize" title="(Visual only)"></button>
+            <button class="dot max" aria-label="Maximize" title="(Visual only)"></button>
+          </div>
+          <h3>${title || 'Window'}</h3>
+        </div>
+        <div class="win-body">${html || ''}</div>
+      `;
+
+      desktop.appendChild(win);
+      bringToFront(win);
+      win.addEventListener('animationend', () => win.classList.remove('opening'), { once: true });
+
+      // Close via the red button
+      const closeBtn = win.querySelector('.dot.close');
+      closeBtn.addEventListener('click', () => closeWindow(win, { toX: fromX, toY: fromY }));
+
+      // Focus + bring to front on pointerdown
+      win.addEventListener('pointerdown', () => bringToFront(win));
+
+      // Dragging
+      makeDraggable(win, win.querySelector('.titlebar'));
+
+      return win;
+    }
+
+    function closeWindow(win, { toX = 0, toY = 0 } = {}) {
+      win.classList.remove('opening');
+      win.classList.add('closing');
+      win.style.setProperty('--from-x', `${toX}px`);
+      win.style.setProperty('--from-y', `${toY}px`);
+      win.addEventListener('animationend', () => win.remove(), { once: true });
+    }
+
+    function makeDraggable(win, handle) {
+      let startX = 0, startY = 0, originLeft = 0, originTop = 0, dragging = false;
+
+      function onPointerDown(e) {
+        const rect = win.getBoundingClientRect();
+        win.style.left = `${rect.left + rect.width / 2}px`;
+        win.style.top = `${rect.top + rect.height / 2}px`;
+        win.style.transform = 'translate(-50%, -50%)';
+
+        dragging = true; bringToFront(win);
+        startX = e.clientX; startY = e.clientY;
+        originLeft = parseFloat(win.style.left); originTop = parseFloat(win.style.top);
+        handle.setPointerCapture(e.pointerId);
+      }
+      function onPointerMove(e) {
+        if (!dragging) return;
+        const dx = e.clientX - startX; const dy = e.clientY - startY;
+        win.style.left = `${originLeft + dx}px`;
+        win.style.top = `${originTop + dy}px`;
+      }
+      function onPointerUp(e) {
+        dragging = false; try { handle.releasePointerCapture(e.pointerId); } catch {}
+      }
+
+      handle.addEventListener('pointerdown', onPointerDown);
+      handle.addEventListener('pointermove', onPointerMove);
+      handle.addEventListener('pointerup', onPointerUp);
+      handle.addEventListener('pointercancel', onPointerUp);
+    }
+
+    // Button click → create window with animation originating from the button's position
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.cube-btn');
+      if (!btn) return;
+
+      const rect = btn.getBoundingClientRect();
+      const viewportCenterX = window.innerWidth / 2;
+      const viewportCenterY = window.innerHeight / 2;
+      const fromX = (rect.left + rect.width / 2) - viewportCenterX;
+      const fromY = (rect.top + rect.height / 2) - viewportCenterY;
+
+      createWindow({ title: btn.dataset.title, html: btn.dataset.content, fromX, fromY });
+    });
+
+    // Close topmost window with Escape
+    window.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const wins = [...desktop.querySelectorAll('.window')];
+      if (!wins.length) return;
+      const topmost = wins.sort((a, b) => (parseInt(getComputedStyle(a).zIndex)||0) - (parseInt(getComputedStyle(b).zIndex)||0)).pop();
+      closeWindow(topmost, { toX: 0, toY: 0 });
+    });
+  </script>
+</body>
+</html>
