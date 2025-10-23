@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Plant Trees • Grow a Greener Future</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <script id="animejs" src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer onerror="this.onerror=null;this.src='https://unpkg.com/animejs@3.2.1/lib/anime.min.js';"></script>
+  <style>
+    :root{ --bg:#0b1220; --bg2:#0f1a2e; --glass:rgba(255,255,255,.12); --glass-strong:rgba(255,255,255,.18); --text:#eaf2ff; --muted:#b9c7e6; --accent:#7ed957; --accent-2:#56cfe1; --accent-3:#ffd166; --shadow:0 20px 60px rgba(0,0,0,.35); --radius:22px; }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    html,body{height:100%}
+    body{ margin:0;color:var(--text); background: radial-gradient(1200px 600px at 70% -20%, #183067 0%, transparent 60%), radial-gradient(800px 500px at -10% 10%, #143f3d 0%, transparent 60%), linear-gradient(180deg, var(--bg) 0%, var(--bg2) 60%, #0b1323 100%); font-family:Poppins,system-ui,-apple-system,Segoi UI,Roboto,"Helvetica Neue",Arial,"Noto Sans"; line-height:1.6; overflow-x:hidden; }
+    a{color:var(--accent)}
+    header{position:relative;min-height:92vh;display:grid;place-items:center;overflow:hidden}
+    nav{position:fixed;top:14px;left:50%;transform:translateX(-50%); backdrop-filter:blur(10px);background:var(--glass);border:1px solid rgba(255,255,255,.14); box-shadow:var(--shadow);z-index:50;border-radius:999px;padding:8px 14px}
+    nav a{color:var(--text);text-decoration:none;padding:10px 14px;border-radius:999px;display:inline-block;opacity:.85}
+    nav a:hover{background:var(--glass-strong);opacity:1}
+    nav a.active{background:linear-gradient(135deg, rgba(126,217,87,.25), rgba(86,207,225,.25));opacity:1}
+
+    /* Ambient leaves overlay across whole page */
+    #ambient-leaves{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+    .ambient-leaf{ position:absolute; width:14px; height:14px; opacity:.85 }
+
+    .hero{position:relative;display:grid;gap:22px;text-align:center;padding:110px 20px 40px}
+    .eyebrow{letter-spacing:.22em;text-transform:uppercase;color:var(--accent-2);font-weight:700;font-size:12px;opacity:.9}
+    h1{margin:0;font-family:"Playfair Display",serif;font-size:clamp(38px,6vw,74px);line-height:1.05;text-shadow:0 10px 40px rgba(0,0,0,.5)}
+    .subtitle{color:var(--muted);max-width:900px;margin:0 auto;font-size:clamp(16px,2.2vw,20px)}
+    .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+    .btn{position:relative;border:none;cursor:pointer;padding:14px 22px;border-radius:999px;font-weight:700;letter-spacing:.02em;overflow:hidden;transform-style:preserve-3d}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#54d16b);color:#0b2012;box-shadow:0 12px 30px rgba(126,217,87,.25)}
+    .btn-ghost{background:transparent;color:var(--text);border:1px solid rgba(255,255,255,.18)}
+    .btn:active{transform:translateY(1px)}
+    /* Extra button effects */
+    .btn::after{content:"";position:absolute;inset:-2px;border-radius:inherit;background:conic-gradient(from 0deg, rgba(255,255,255,.0), rgba(255,255,255,.2), rgba(255,255,255,.0));filter:blur(8px);opacity:0;transition:opacity .35s ease}
+    .btn:hover::after{opacity:1}
+
+    section{position:relative;padding:86px 22px}
+    .container{max-width:1100px;margin:0 auto}
+    h2{font-family:"Playfair Display",serif;font-size:clamp(28px,4.4vw,42px);margin:0 0 18px;display:flex;align-items:center;gap:10px}
+    .kicker{color:var(--accent-2);font-weight:700;text-transform:uppercase;letter-spacing:.18em;font-size:12px;opacity:.9}
+    .grid{display:grid;gap:20px}
+    @media(min-width:880px){.grid.cols-3{grid-template-columns:repeat(3,1fr)}.grid.cols-2{grid-template-columns:1.2fr 1fr}}
+
+    .card{background:var(--glass);border:1px solid rgba(255,255,255,.14);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);opacity:0;transform:translateY(14px)}
+    .card.show{opacity:1;transform:none;transition:transform .6s ease,opacity .6s ease}
+    .card h3{margin:6px 0 6px;font-size:20px}
+    .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06)}
+
+    footer{padding:40px 22px;color:var(--muted);text-align:center}
+
+    .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:.7}
+    .scene{position:absolute;inset:0;pointer-events:none;user-select:none;overflow:visible}
+    svg{max-width:none}
+
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+    .species{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+    .species .card{display:flex;flex-direction:column;gap:6px}
+    .pill{font-size:11px;color:#0d2414;background:linear-gradient(135deg,#b9ff9c,#7ed957);padding:6px 10px;border-radius:999px;font-weight:700;width:max-content}
+
+    .sep{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.18),transparent);margin:16px 0}
+
+    ::-webkit-scrollbar{height:10px;width:10px}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:10px}
+
+    .leaf-icon{width:22px;height:22px;display:inline-block}
+
+    /* Section underbrush visuals */
+    .underbrush{position:absolute;left:0;right:0;bottom:-6px;height:80px;pointer-events:none}
+
+    @media(prefers-reduced-motion:reduce){.star{animation:none!important}}
+  </style>
+</head>
+<body>
+  <nav aria-label="Primary">
+    <a href="#why">Why Trees</a>
+    <a href="#species">Species</a>
+    <a href="#how">How to Help</a>
+    <a href="#wildlife">Wildlife</a>
+  </nav>
+
+  <!-- Ambient leaves across the whole page -->
+  <div id="ambient-leaves" aria-hidden="true"></div>
+
+  <header id="top">
+    <div id="stars"></div>
+
+    <!-- MAIN SVG SCENE -->
+    <svg class="scene" viewBox="0 0 1440 760" aria-hidden="true">
+      <defs>
+        <linearGradient id="groundGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#0d2a22"/><stop offset="100%" stop-color="#0a1e18"/></linearGradient>
+        <linearGradient id="leafGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#89e37a"/><stop offset="100%" stop-color="#3bbf62"/></linearGradient>
+        <linearGradient id="trunkGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#634832"/><stop offset="100%" stop-color="#3d2a1c"/></linearGradient>
+      </defs>
+      <rect x="0" y="600" width="1440" height="200" fill="url(#groundGrad)"/>
+
+      <!-- Forest (template gets cloned) -->
+      <g id="forest">
+        <g id="tree-template" transform="translate(200,560) scale(1)">
+          <rect x="-15" y="-140" width="30" height="160" rx="12" fill="url(#trunkGrad)"/>
+          <g class="branches">
+            <path d="M0 -120 C 40 -130, 60 -110, 90 -100" stroke="#4a3726" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <path d="M0 -85 C -35 -95, -55 -80, -85 -70" stroke="#4a3726" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <path d="M0 -50 C 30 -65, 45 -55, 65 -40" stroke="#4a3726" stroke-width="7" fill="none" stroke-linecap="round"/>
+          </g>
+          <g class="canopy">
+            <ellipse cx="0" cy="-140" rx="110" ry="60" fill="url(#leafGrad)" opacity="0.95"/>
+            <ellipse cx="-70" cy="-115" rx="80" ry="48" fill="url(#leafGrad)" opacity="0.9"/>
+            <ellipse cx="70" cy="-115" rx="80" ry="48" fill="url(#leafGrad)" opacity="0.92"/>
+            <ellipse cx="0" cy="-95" rx="95" ry="52" fill="url(#leafGrad)" opacity="0.92"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- Bushes under the title -->
+      <g id="bushes" transform="translate(0,0)">
+        <g transform="translate(220,640)"><ellipse cx="0" cy="0" rx="70" ry="28" fill="#2a6b3a" opacity="0.9"/><ellipse cx="60" cy="2" rx="60" ry="24" fill="#338a48" opacity="0.9"/><ellipse cx="-60" cy="4" rx="56" ry="22" fill="#3aa85a" opacity="0.9"/></g>
+        <g transform="translate(740,645)"><ellipse cx="0" cy="0" rx="80" ry="30" fill="#2a6b3a" opacity="0.9"/><ellipse cx="70" cy="4" rx="60" ry="24" fill="#338a48" opacity="0.9"/><ellipse cx="-70" cy="6" rx="56" ry="22" fill="#3aa85a" opacity="0.9"/></g>
+        <g transform="translate(1160,642)"><ellipse cx="0" cy="0" rx="65" ry="26" fill="#2a6b3a" opacity="0.9"/><ellipse cx="50" cy="2" rx="54" ry="22" fill="#338a48" opacity="0.9"/><ellipse cx="-50" cy="4" rx="48" ry="20" fill="#3aa85a" opacity="0.9"/></g>
+      </g>
+
+      <!-- Bird path + flock container -->
+      <path id="skyPath" d="M -100,120 C 200,10 500,150 780,80 S 1250,130 1550,50" fill="none" stroke="transparent"/>
+      <g id="birds"></g>
+
+      <!-- Removed butterflies entirely -->
+      <!-- Removed fireflies to keep focus on leaves everywhere -->
+    </svg>
+
+    <div class="hero container">
+      <span class="eyebrow">A tiny action, a massive impact</span>
+      <h1>Plant a Tree. <span style="color:var(--accent)">Grow</span> the Future.</h1>
+      <p class="subtitle">Trees cool cities, clean the air, store carbon, shelter wildlife, and protect our water. This playful page shows why planting trees is one of the simplest, most beautiful ways to help the planet.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="#how" data-ripple data-leafburst>Plant a Tree Today</a>
+        <a class="btn btn-ghost" href="#species" data-ripple data-leafburst>Explore Tree Species</a>
+      </div>
+      <span class="hint">Tap the ground to plant a sapling 🌱</span>
+    </div>
+  </header>
+
+  <main>
+    <section id="why">
+      <div class="container">
+        <span class="kicker">Why Trees Matter</span>
+        <h2>
+          <svg class="leaf-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#7ed957" d="M12 2c5 5 7 9 7 12a7 7 0 1 1-14 0c0-3 2-7 7-12Z"/></svg>
+          Small seeds, big benefits
+        </h2>
+        <div class="grid cols-3">
+          <article class="card"><span class="badge">🌿 Air &amp; Climate</span><h3>Capture carbon &amp; clean the air</h3><p>Trees absorb CO₂ and pollutants, releasing oxygen we breathe. Their shade cools streets and homes, cutting heat and energy use.</p></article>
+          <article class="card"><span class="badge">💧 Water &amp; Soil</span><h3>Protect water, prevent erosion</h3><p>Roots stabilize soil, slow stormwater, and support healthy rivers. Forests act like giant sponges that filter and store water.</p></article>
+          <article class="card"><span class="badge">🐦 Habitat</span><h3>Shelter for wildlife</h3><p>From birds and butterflies to foxes and fungi—trees are living neighborhoods where nature thrives.</p></article>
+        </div>
+      </div>
+      <svg class="underbrush" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+        <g opacity="0.95">
+          <ellipse cx="180" cy="90" rx="90" ry="30" fill="#2a6b3a"/>
+          <ellipse cx="270" cy="92" rx="80" ry="26" fill="#338a48"/>
+          <ellipse cx="360" cy="94" rx="70" ry="24" fill="#3aa85a"/>
+          <ellipse cx="1020" cy="96" rx="100" ry="32" fill="#2a6b3a"/>
+          <ellipse cx="1120" cy="94" rx="78" ry="26" fill="#338a48"/>
+          <ellipse cx="1210" cy="92" rx="66" ry="22" fill="#3aa85a"/>
+        </g>
+      </svg>
+    </section>
+
+    <section id="species">
+      <div class="container">
+        <span class="kicker">Tree Types</span>
+        <h2>
+          <svg class="leaf-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#7ed957" d="M12 2c5 5 7 9 7 12a7 7 0 1 1-14 0c0-3 2-7 7-12Z"/></svg>
+          Pick a species that fits your place
+        </h2>
+        <div class="species">
+          <div class="card"><span class="pill">Native</span><h3>Oak (Quercus spp.)</h3><p>Long‑lived shade tree supporting hundreds of insect and bird species. Great for biodiversity.</p></div>
+          <div class="card"><span class="pill">Drought‑tolerant</span><h3>Olive (Olea europaea)</h3><p>Hardy with silver leaves and deep roots. Thrives in hot, dry climates.</p></div>
+          <div class="card"><span class="pill">Flowering</span><h3>Jacaranda (Jacaranda mimosifolia)</h3><p>Lavender blooms in spring; attracts pollinators and paints streets purple.</p></div>
+          <div class="card"><span class="pill">Evergreen</span><h3>Pine (Pinus spp.)</h3><p>Year‑round needles, aromatic resin, and excellent windbreaks in open landscapes.</p></div>
+          <div class="card"><span class="pill">Urban hero</span><h3>Plane Tree (Platanus × acerifolia)</h3><p>Tough city shade tree tolerant of pruning and pollution; classic boulevard canopy.</p></div>
+          <div class="card"><span class="pill">Fast‑growing</span><h3>Poplar (Populus spp.)</h3><p>Rapid growth for quick shade and windbreaks. Great for restoration when placed wisely.</p></div>
+        </div>
+        <div class="sep"></div>
+        <p class="hint">Tip: Choose native species suited to your rainfall, soils, and space. Mix ages and species for resilience.</p>
+      </div>
+      <svg class="underbrush" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+        <g opacity="0.95">
+          <ellipse cx="220" cy="96" rx="100" ry="30" fill="#2a6b3a"/>
+          <ellipse cx="320" cy="94" rx="80" ry="26" fill="#338a48"/>
+          <ellipse cx="410" cy="92" rx="70" ry="24" fill="#3aa85a"/>
+          <ellipse cx="980" cy="92" rx="90" ry="28" fill="#2a6b3a"/>
+          <ellipse cx="1060" cy="94" rx="70" ry="24" fill="#338a48"/>
+          <ellipse cx="1140" cy="96" rx="60" ry="22" fill="#3aa85a"/>
+        </g>
+      </svg>
+    </section>
+
+    <section id="how">
+      <div class="container grid cols-2">
+        <div>
+          <span class="kicker">Get Involved</span>
+          <h2>
+            <svg class="leaf-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#7ed957" d="M12 2c5 5 7 9 7 12a7 7 0 1 1-14 0c0-3 2-7 7-12Z"/></svg>
+            Plant the right tree, the right way
+          </h2>
+          <div class="card">
+            <ol>
+              <li><strong>Match species to site:</strong> Sun, space, water, and soil conditions matter.</li>
+              <li><strong>Dig a wide hole:</strong> As deep as the root ball, twice as wide for loose soil.</li>
+              <li><strong>Set at root flare:</strong> Don’t bury the trunk. Backfill and water deeply.</li>
+              <li><strong>Mulch &amp; water:</strong> 5–8 cm mulch ring; weekly deep watering in the first year.</li>
+              <li><strong>Protect &amp; prune:</strong> Guard young trunks; prune lightly for structure.</li>
+            </ol>
+          </div>
+          <p class="hint">Join local planting days or gift a tree to a school or neighbor.</p>
+          <div class="cta">
+            <button class="btn btn-primary" id="plant-btn" data-ripple data-leafburst>Plant a Sapling</button>
+            <a class="btn btn-ghost" href="#wildlife" data-ripple data-leafburst>Meet the neighbors</a>
+          </div>
+        </div>
+        <div class="card" aria-label="Quick facts">
+          <h3>Quick Facts</h3>
+          <ul>
+            <li>Urban trees can cool neighborhoods by 2–4°C.</li>
+            <li>Mature trees can absorb ~20 kg of CO₂ per year on average.</li>
+            <li>Leafy streets boost mental wellbeing and walkability.</li>
+          </ul>
+        </div>
+      </div>
+      <svg class="underbrush" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+        <g opacity="0.95">
+          <ellipse cx="200" cy="96" rx="100" ry="30" fill="#2a6b3a"/>
+          <ellipse cx="300" cy="94" rx="80" ry="26" fill="#338a48"/>
+          <ellipse cx="390" cy="92" rx="70" ry="24" fill="#3aa85a"/>
+          <ellipse cx="1000" cy="92" rx="90" ry="28" fill="#2a6b3a"/>
+          <ellipse cx="1080" cy="94" rx="70" ry="24" fill="#338a48"/>
+          <ellipse cx="1160" cy="96" rx="60" ry="22" fill="#3aa85a"/>
+        </g>
+      </svg>
+    </section>
+
+    <section id="wildlife">
+      <div class="container">
+        <span class="kicker">Wildlife</span>
+        <h2>
+          <svg class="leaf-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#7ed957" d="M12 2c5 5 7 9 7 12a7 7 0 1 1-14 0c0-3 2-7 7-12Z"/></svg>
+          Every tree is a tiny habitat
+        </h2>
+        <div class="grid cols-3">
+          <div class="card"><h3>Birds</h3><p>Branches offer nesting spots and lookout posts. Berries and insects provide food.</p></div>
+          <div class="card"><h3>Pollinators</h3><p>Bees and moths feed on blossoms and shelter under leaves.</p></div>
+          <div class="card"><h3>Small mammals</h3><p>Foxes and squirrels use tree cover for safety and foraging.</p></div>
+        </div>
+      </div>
+      <svg class="underbrush" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+        <g opacity="0.95">
+          <ellipse cx="240" cy="94" rx="100" ry="30" fill="#2a6b3a"/>
+          <ellipse cx="340" cy="96" rx="80" ry="26" fill="#338a48"/>
+          <ellipse cx="420" cy="94" rx="70" ry="24" fill="#3aa85a"/>
+          <ellipse cx="960" cy="96" rx="100" ry="30" fill="#2a6b3a"/>
+          <ellipse cx="1060" cy="94" rx="80" ry="26" fill="#338a48"/>
+          <ellipse cx="1150" cy="92" rx="66" ry="22" fill="#3aa85a"/>
+        </g>
+      </svg>
+    </section>
+  </main>
+
+  <footer>
+    Made with 🌱. Share this page, plant a tree, and watch the world get greener.
+  </footer>
+
+  <span class="sr-only" aria-live="polite" id="a11y-status"></span>
+
+  <script>
+    function ready(fn){document.readyState!=='loading'?fn():document.addEventListener('DOMContentLoaded',fn)}
+
+    function init(){
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // STARFIELD
+      const starLayer = document.getElementById('stars');
+      for(let i=0;i<160;i++){const s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'vw';s.style.top=Math.random()*55+'vh';s.style.opacity=(0.4+Math.random()*0.6).toFixed(2);s.style.transform=`scale(${0.6+Math.random()*1.4})`;starLayer.appendChild(s)}
+      if(!prefersReduced&&window.anime){anime({targets:'.star',opacity:[0.3,0.9],duration:2200,delay:anime.stagger(15),easing:'easeInOutSine',direction:'alternate',loop:true})}
+
+      // FOREST
+      const forest=document.getElementById('forest');
+      const template=document.getElementById('tree-template');
+      const treePositions=[120,260,420,620,780,940,1150,1320];
+      treePositions.forEach((x,i)=>{const n=template.cloneNode(true);n.id=`tree-${i}`;const y=560+(i%2===0?8:-10)+Math.random()*14;const s=0.75+Math.random()*0.65;n.setAttribute('transform',`translate(${x}, ${y}) scale(${s})`);forest.appendChild(n)});template.remove();
+      if(!prefersReduced&&window.anime){
+        anime({targets:'#forest g',rotate:[-1.4,1.4],transformOrigin:['50% 100%','50% 100%'],duration:4800,delay:anime.stagger(180),easing:'easeInOutSine',direction:'alternate',loop:true});
+        anime({targets:'#forest .canopy ellipse',translateY:[0,-2],translateX:[0,1],duration:2600,easing:'easeInOutSine',direction:'alternate',loop:true,delay:anime.stagger(120)});
+      }
+
+      // Bushes subtle shimmer
+      if(!prefersReduced&&window.anime){ anime({targets:'.underbrush ellipse,#bushes ellipse',translateY:[0,-1],duration:3000,easing:'easeInOutSine',direction:'alternate',loop:true,delay:anime.stagger(120)}); }
+
+      // Falling leaves in header scene
+      const scene=document.querySelector('.scene');
+      const leafColors=['#7ed957','#6ed18f','#9ae887','#5aca6e'];
+      function spawnLeaf(){const leaf=document.createElementNS('http://www.w3.org/2000/svg','path');leaf.classList.add('leaf');const x=Math.random()*1440;const size=6+Math.random()*10;const c=leafColors[Math.floor(Math.random()*leafColors.length)];leaf.setAttribute('d',`M0 0 C ${size/2} ${-size/2}, ${size} ${-size/4}, ${size} 0 C ${size} ${size/4}, ${size/2} ${size/2}, 0 0 Z`);leaf.setAttribute('fill',c);leaf.setAttribute('opacity',.95);scene.appendChild(leaf);if(!prefersReduced&&window.anime){anime({targets:leaf,translateX:[x,x+(Math.random()*100-50)],translateY:[-20,640+Math.random()*60],rotate:[0,Math.random()>0.5?180:-180],scale:[0.6,1.1],easing:'easeInOutSine',duration:7000+Math.random()*5000,complete:()=>leaf.remove()})}}
+      for(let i=0;i<12;i++) setTimeout(spawnLeaf,i*350); if(!prefersReduced) setInterval(spawnLeaf,650);
+
+      // Birds along the sky path
+      const birds=document.getElementById('birds');
+      if(window.anime){const path=anime.path('#skyPath');function bird(delay=0,scale=1,opacity=.9){const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.setAttribute('opacity',opacity);g.innerHTML=`<path d="M0 0 q 10 -8 20 0" fill="none" stroke="#e8f6ff" stroke-width="2" stroke-linecap="round"/><path d="M0 0 q -10 -8 -20 0" fill="none" stroke="#e8f6ff" stroke-width="2" stroke-linecap="round"/>`;birds.appendChild(g);if(!prefersReduced){anime({targets:g,translateX:path('x'),translateY:path('y'),rotate:path('angle'),scale:scale,duration:12000+Math.random()*4000,delay:delay,easing:'linear',loop:true});anime({targets:g.querySelectorAll('path'),d:[{value:'M0 0 q 12 -12 24 0'},{value:'M0 0 q 10 -6 20 0'}],direction:'alternate',duration:380,easing:'easeInOutSine',loop:true})}}bird(0,1,.85);bird(2500,.9,.7);bird(5200,1.2,.9)}
+
+      // Reveal cards on scroll
+      const observerSupported = 'IntersectionObserver' in window;
+      const cards = [...document.querySelectorAll('.card')];
+      if (observerSupported) {
+        const observer = new IntersectionObserver(entries=>{
+          entries.forEach(en=>{
+            if(en.isIntersecting){
+              en.target.classList.add('show');
+              observer.unobserve(en.target);
+            }
+          })
+        },{threshold:.14});
+        cards.forEach(el=>observer.observe(el));
+        const prime = ()=>{
+          cards.forEach(el=>{
+            const rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) el.classList.add('show');
+          });
+        };
+        prime();
+        window.addEventListener('load', prime, { once: true });
+        setTimeout(()=>{cards.forEach(el=>el.classList.add('show'))}, 900);
+      } else {
+        cards.forEach(el=>el.classList.add('show'));
+      }
+
+      // Active nav link on scroll
+      const sections=[...document.querySelectorAll('main section')];
+      const navLinks=[...document.querySelectorAll('nav a')];
+      const onScroll=()=>{const fromTop=window.scrollY+120;let id=null;for(const s of sections){if(s.offsetTop<=fromTop) id=s.id}navLinks.forEach(a=>{a.classList.toggle('active',a.getAttribute('href')==='#'+id)})};
+      document.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+      // Interactivity: click to plant a sapling on the ground
+      const header=document.querySelector('header');
+      function svgPoint(clientX,clientY){const svg=document.querySelector('.scene');const pt=svg.createSVGPoint();pt.x=clientX;pt.y=clientY;return pt.matrixTransform(svg.getScreenCTM().inverse())}
+      function plant(x,y){const sap=document.createElementNS('http://www.w3.org/2000/svg','g');sap.setAttribute('transform',`translate(${x}, ${y}) scale(0.2)`);sap.innerHTML=`<rect x="-4" y="-8" width="8" height="12" rx="2" fill="url(#trunkGrad)"/><ellipse cx="0" cy="-16" rx="14" ry="10" fill="url(#leafGrad)" opacity="0.95"/>`;
+        document.querySelector('.scene').appendChild(sap); if(window.anime&&!prefersReduced){anime({targets:sap,scale:[0.2,1],translateY:[y+20,y],easing:'easeOutElastic(1,.7)',duration:1400})}
+      }
+      header.addEventListener('click',e=>{if(e.target.closest('a,button')) return;const p=svgPoint(e.clientX,e.clientY);if(p.y<600) return;plant(p.x,p.y)});
+      document.getElementById('plant-btn').addEventListener('click',()=>{plant(720+Math.random()*200-100,620+Math.random()*40-20)});
+
+      // AMBIENT LEAVES across whole page (fixed overlay)
+      const ambient=document.getElementById('ambient-leaves');
+      function createAmbientLeaf(){
+        const svgNS='http://www.w3.org/2000/svg';
+        const leaf=document.createElementNS(svgNS,'svg');
+        leaf.setAttribute('viewBox','0 0 20 20');
+        leaf.classList.add('ambient-leaf');
+        const path=document.createElementNS(svgNS,'path');
+        const size=10+Math.random()*8;
+        path.setAttribute('d',`M2 10 C 6 2, 14 2, 18 10 C 14 18, 6 18, 2 10 Z`);
+        path.setAttribute('fill',['#7ed957','#6ed18f','#9ae887','#5aca6e'][Math.floor(Math.random()*4)]);
+        leaf.style.left=Math.random()*100+'vw';
+        leaf.style.top=(-20 - Math.random()*60)+'px';
+        leaf.style.transform=`scale(${size/14}) rotate(${Math.random()*180}deg)`;
+        leaf.appendChild(path); ambient.appendChild(leaf);
+        if(!prefersReduced&&window.anime){
+          anime({targets:leaf, translateY:[0, document.documentElement.scrollHeight + 120], translateX:[0, (Math.random()*60-30)], rotate:'+=180', duration: 14000 + Math.random()*10000, easing:'linear', complete:()=>leaf.remove()});
+        }
+      }
+      for(let i=0;i<18;i++) setTimeout(createAmbientLeaf, i*300);
+      setInterval(createAmbientLeaf, 900);
+
+      // Button ripple + hover tilt + leaf burst
+      document.querySelectorAll('[data-ripple]').forEach(btn=>{
+        btn.addEventListener('click',e=>{const r=document.createElement('span');r.style.position='absolute';r.style.left=e.offsetX+'px';r.style.top=e.offsetY+'px';r.style.width=r.style.height='6px';r.style.borderRadius='50%';r.style.background='rgba(255,255,255,.6)';r.style.transform='translate(-50%, -50%)';r.style.pointerEvents='none';btn.appendChild(r);if(window.anime){anime({targets:r,scale:[1,28],opacity:[.5,0],easing:'easeOutCubic',duration:650,complete:()=>r.remove()});}});
+        btn.addEventListener('mousemove',e=>{const rect=btn.getBoundingClientRect();const x=(e.clientX-rect.left)/rect.width-0.5;const y=(e.clientY-rect.top)/rect.height-0.5;btn.style.transform=`rotateX(${(-y*6).toFixed(2)}deg) rotateY(${(x*6).toFixed(2)}deg)`});
+        btn.addEventListener('mouseleave',()=>{btn.style.transform=''});
+      });
+      document.querySelectorAll('[data-leafburst]').forEach(btn=>{
+        btn.addEventListener('click',e=>{
+          if(!(window.anime&&!prefersReduced)) return;
+          const rect=btn.getBoundingClientRect();
+          const cx=e.clientX-rect.left, cy=e.clientY-rect.top;
+          const colors=['#7ed957','#6ed18f','#9ae887','#5aca6e'];
+          for(let i=0;i<8;i++){
+            const leaf=document.createElement('span');
+            leaf.style.position='absolute'; leaf.style.left=cx+'px'; leaf.style.top=cy+'px'; leaf.style.width='8px'; leaf.style.height='8px'; leaf.style.borderRadius='2px'; leaf.style.background=colors[Math.floor(Math.random()*colors.length)]; leaf.style.transform='translate(-50%,-50%) rotate(45deg)'; leaf.style.pointerEvents='none'; btn.appendChild(leaf);
+            anime({targets:leaf, translateX:(Math.random()*120-60), translateY:-(30+Math.random()*60), opacity:[1,0], scale:[1,1.6], rotate:'+=180', duration:600+Math.random()*500, easing:'easeOutCubic', complete:()=>leaf.remove()});
+          }
+        });
+      });
+
+      // A11y live message
+      const live=document.getElementById('a11y-status');setTimeout(()=>{live.textContent='Forest ready. Tap the ground to plant a sapling.'},1000);
+    }
+
+    ready(function(){ if(window.anime){init()} else {window.addEventListener('load',init)} });
+
+    /* --- Smoke tests (non-intrusive) --- */
+    (function runSmokeTests(){
+      try{
+        const src = document.currentScript && document.currentScript.textContent || '';
+        console.assert(!/\$1\b/.test(src), 'No stray $1 token remains');
+        console.assert(typeof init === 'function', 'init() exists');
+        console.assert(document.querySelectorAll('.card').length >= 6, 'Cards present');
+        console.assert(document.getElementById('forest'), 'Forest SVG present');
+        window.addEventListener('load', ()=>{
+          setTimeout(()=>{
+            const shown = document.querySelectorAll('.card.show').length;
+            console.assert(shown > 0, 'Cards revealed on load');
+          }, 500);
+        }, {once:true});
+      }catch(e){/* ignore */}
+    })();
+  </script>
+
+  <noscript>
+    <style>.scene,.star{display:none!important}</style>
+    <div style="max-width:1100px;margin:16px auto;padding:12px 16px;border-radius:12px;background:#fff3c4;color:#332b00">JavaScript is disabled, so animations are off. The page content is still fully available.</div>
+  </noscript>
+</body>
+</html>
