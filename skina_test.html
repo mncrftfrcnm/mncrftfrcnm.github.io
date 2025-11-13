@@ -8,6 +8,153 @@
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Cherry+Bomb+One&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/animejs@3.2.1/lib/anime.min.js" defer></script>
   <style>
+    /* PHONE LAYOUT (up to ~768px wide) */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  /* NAV: stack and shrink buttons */
+  .nav {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .brand {
+    margin-bottom: 6px;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .navlinks {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .navlinks .link,
+  .navlinks .cta {
+    padding: 7px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* optionally hide one or two non-essential links on tiny screens */
+  .navlinks a[href="#calendar"],
+  .navlinks a[href="#profile"] {
+    display: none;
+  }
+
+  /* HERO: stack image and card, reduce padding */
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 20px 14px 12px;
+    gap: 16px;
+  }
+
+  .hero-card {
+    padding: 16px;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.8rem, 2.4rem, 2.6rem);
+  }
+
+  .hero p {
+    font-size: 0.95rem;
+  }
+
+  /* Put the blob above text on phones if you like */
+  .blob-wrap {
+    order: -1;
+    height: 260px;
+    margin-bottom: 8px;
+  }
+
+  /* Sections: make them narrower and tighter */
+  section {
+    padding: 18px 14px;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .cols {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .model-img {
+    max-height: 200px;
+    object-fit: cover;
+  }
+
+  /* Team grid */
+  .team {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Reduce some vertical decorations to fit more on screen */
+  .edge,
+  .sea {
+    display: none;
+  }
+
+  .flow,
+  .marquee {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+}
+
+/* EXTRA-SMALL PHONES (up to ~480px) */
+@media (max-width: 480px) {
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navlinks {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .navlinks .cta {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .hero {
+    padding-top: 16px;
+  }
+
+  .hero-card .navlinks {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-card .navlinks .cta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .blob-wrap {
+    height: 220px;
+  }
+
+  .grove {
+    height: 220px;
+  }
+}
+
     :root{
       --petal-50:#fff1f5; --petal-100:#ffe3ed; --petal-200:#ffc7db; --petal-300:#ffadc8; --petal-400:#ff94b7; --petal-500:#FF89A8; --petal-600:#f46b93;
       --mint:#EAF8F0; --cream:#FFF7EF; --ink:#2E5D50; --leaf:#9DD19D;
