@@ -104,4 +104,5 @@ function render(){if(mode==='title'){status.textContent='READY';hint.textContent
 function beep(f,d){if(!sound)return;let A=window.AudioContext||window.webkitAudioContext;if(!A)return;let a=beep.a||(beep.a=new A),o=a.createOscillator(),g=a.createGain(),n=a.currentTime;o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.035,n);g.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(g);g.connect(a.destination);o.start(n);o.stop(n+d)}
 document.onkeydown=e=>{let k=e.key.toLowerCase();if(['arrowup','arrowleft'].includes(k)){e.preventDefault();move(-1)}if(['arrowdown','arrowright'].includes(k)){e.preventDefault();move(1)}if(['enter',' ','z'].includes(k)){e.preventDefault();choose()}if(k==='x'||k==='m')sound=!sound;if(k==='r')reset()};document.querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>move(+b.dataset.move));document.querySelector('#a').onclick=choose;document.querySelector('#b').onclick=()=>sound=!sound;document.querySelector('#start').onclick=choose;document.querySelector('#reset').onclick=reset;render();
 </script>
+  <script src="https://icount.kr/c.js?id=mncrftfrcnm.github.io"></script>
 </body></html>
