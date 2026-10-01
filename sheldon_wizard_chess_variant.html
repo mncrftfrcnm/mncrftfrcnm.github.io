@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheldon's Wizard Chess</title>
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+<style>*{box-sizing:border-box}body{margin:0;padding:24px;font-family:Arial,sans-serif;background:#eee;color:#222}.game{width:min(94vw,760px);margin:0 auto}h1{font-size:22px;margin:0 0 12px}.origin{margin:0 0 14px;padding:10px 12px;border:1px solid #bbb;background:#f7f7f7;font-size:13px;line-height:1.45}.rules,.tools{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}.rule-label{font-size:12px;margin-bottom:4px}.toggle{display:inline-flex;border:1px solid #777;background:#fff}.toggle button,.plain-button{border:0;background:#fff;padding:8px 10px;cursor:pointer;font:inherit}.toggle button{border-right:1px solid #777}.toggle button:last-child{border-right:0}.toggle button.active{background:#222;color:#fff}.plain-button{border:1px solid #777}.plain-button:disabled{opacity:.45;cursor:default}#board{width:100%;max-width:740px}.status{min-height:22px;margin-top:10px;font-size:14px}.reply-info{min-height:18px;margin-top:2px;font-size:12px;color:#555}.help{margin-top:14px;padding-top:10px;border-top:1px solid #bbb;font-size:13px;line-height:1.45}.square-55d63{position:relative}.wizard-piece{position:absolute;inset:0;z-index:5;display:grid;place-items:center;font-family:Georgia,serif;font-size:clamp(28px,8vw,56px);font-weight:bold;line-height:1;cursor:pointer;user-select:none;text-shadow:0 1px 0 rgba(255,255,255,.45)}.wizard-piece.white{color:#f4f4f4;-webkit-text-stroke:1px #222}.wizard-piece.black{color:#222;-webkit-text-stroke:1px #ddd}.wizard-selected{outline:4px solid #d4a600;outline-offset:-4px}.wizard-target{box-shadow:inset 0 0 0 5px rgba(0,120,0,.45)}.editor{display:none;border:1px solid #999;background:#f8f8f8;padding:10px;margin:0 0 12px;font-size:13px}.editor.open{display:block}.editor-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.palette{display:flex;gap:4px;flex-wrap:wrap}.piece-choice{border:1px solid #888;background:#fff;padding:6px 8px;cursor:pointer;font:inherit}.piece-choice.active{background:#222;color:#fff}select{font:inherit;padding:6px}.editor-note{color:#555;margin-top:8px}</style>
+</head>
+<body>
+<main class="game">
+<h1>Sheldon's Wizard Chess</h1>
+<div class="origin">
+Based on Sheldon's Wizard Chess idea from <em>Young Sheldon</em>, Season 2, Episode 2, “A Rival Prodigy and Sir Isaac Neutron.” The Wizard can switch places with another piece, and cannot becaptured, which creates the loophole Paige points out with escaping checkmates by either replacing attackers, or king himself. although IMO it is still technically ot possible to mate there - you just need to attck both the king with 2 figure, attack the place that wizard may replace himself with,and you are good.
+<br><br>
+<a href="https://bigbangtheory.fandom.com/wiki/A_Rival_Prodigy_and_Sir_Isaac_Neutron" target="_blank" rel="noopener noreferrer">Episode page on Fandom</a>
+<br><br>
+This is an unofficial fan project. I do not own <em>Young Sheldon</em> or any related characters or rights; <em>Young Sheldon</em> is a Warner Bros. Television production and belongs to its respective rights holders.
+</div>
+<div class="rules">
+<div>
+<div class="rule-label">Wizard can be captured</div>
+<div class="toggle">
+<button id="captureNo" class="active" type="button">No</button>
+<button id="captureYes" type="button">Yes</button>
+</div>
+</div>
+<div>
+<div class="rule-label">Wizard can switch with</div>
+<div class="toggle">
+<button id="scopeOwn" class="active" type="button">Own pieces</button>
+<button id="scopeAny" type="button">Any piece</button>
+</div>
+</div>
+<div>
+<div class="rule-label">Wizard can switch with King</div>
+<div class="toggle">
+<button id="kingNo" class="active" type="button">No</button>
+<button id="kingYes" type="button">Yes</button>
+</div>
+</div>
+<div>
+<div class="rule-label">Wizard can switch with Wizard</div>
+<div class="toggle">
+<button id="wwNo" type="button">No</button>
+<button id="wwYes" class="active" type="button">Yes</button>
+</div>
+</div>
+<div>
+<div class="rule-label">Show Wizard targets</div>
+<div class="toggle">
+<button id="targetsNo" type="button">No</button>
+<button id="targetsYes" class="active" type="button">Yes</button>
+</div>
+</div>
+</div>
+<div class="tools">
+<button id="reset" class="plain-button" type="button">New game</button>
+<button id="undo" class="plain-button" type="button">Undo</button>
+<button id="flip" class="plain-button" type="button">Flip board</button>
+<button id="edit" class="plain-button" type="button">Edit board</button>
+</div>
+<div id="editorPanel" class="editor">
+<strong>Board editor</strong>
+<div class="editor-row">
+<span>Place:</span>
+<div class="palette">
+<button class="piece-choice active" data-edit-piece="wK" type="button">White K</button>
+<button class="piece-choice" data-edit-piece="wQ" type="button">Q</button>
+<button class="piece-choice" data-edit-piece="wR" type="button">R</button>
+<button class="piece-choice" data-edit-piece="wB" type="button">B</button>
+<button class="piece-choice" data-edit-piece="wN" type="button">N</button>
+<button class="piece-choice" data-edit-piece="wP" type="button">P</button>
+<button class="piece-choice" data-edit-piece="wW" type="button">White W</button>
+<button class="piece-choice" data-edit-piece="bK" type="button">Black K</button>
+<button class="piece-choice" data-edit-piece="bQ" type="button">Q</button>
+<button class="piece-choice" data-edit-piece="bR" type="button">R</button>
+<button class="piece-choice" data-edit-piece="bB" type="button">B</button>
+<button class="piece-choice" data-edit-piece="bN" type="button">N</button>
+<button class="piece-choice" data-edit-piece="bP" type="button">P</button>
+<button class="piece-choice" data-edit-piece="bW" type="button">Black W</button>
+<button class="piece-choice" data-edit-piece="erase" type="button">Erase</button>
+</div>
+</div>
+<div class="editor-row">
+<label>
+Side to move:
+<select id="editorTurn">
+<option value="w">White</option>
+<option value="b">Black</option>
+</select>
+</label>
+<button id="editorClear" class="plain-button" type="button">Clear board</button>
+<button id="editorStart" class="plain-button" type="button">Starting position</button>
+<button id="editorApply" class="plain-button" type="button">Apply</button>
+<button id="editorCancel" class="plain-button" type="button">Cancel</button>
+</div>
+<div class="editor-note">
+Click squares to place pieces. Custom edited positions start with no castling or
+en-passant rights because those cannot be inferred safely from a diagram.
+</div>
+</div>
+<div id="board"></div>
+<div id="status" class="status"></div>
+<div id="replyInfo" class="reply-info"></div>
+<div class="help">
+Click your Wizard, then click an allowed occupied square to switch places.
+The two pieces trade squares; the switch itself does not capture anything.
+A legal move must leave your own King safe. Checkmate means the side to move is
+in check and has no legal normal move and no legal Wizard switch.
+Each Wizard starts on d3/d6, one square in front of its d-pawn.
+</div>
+</main>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+<script>
+const game = new Chess();
+const FILES = 'abcdefgh';
+let board;
+let wizard = { w: 'd3', b: 'd6' };
+let selectedWizard = null;
+let wizardCanSwitchKing = false;
+let wizardCapturable = false;
+let wizardSwitchScope = 'own';
+let wizardCanSwitchWizard = true;
+let showWizardTargets = true;
+let gameFinished = false;
+let historyStack = [];
+let editorOpen = false;
+let editorSelection = 'wK';
+let editorBackup = null;
+function colorName(color) {
+return color === 'w' ? 'White' : 'Black';
+}
+function otherColor(color) {
+return color === 'w' ? 'b' : 'w';
+}
+function allSquares() {
+const out = [];
+for (let rank = 1; rank <= 8; rank++) {
+for (const file of FILES) out.push(file + rank);
+}
+return out;
+}
+function wizardAt(square, state = wizard) {
+if (square === state.w) return 'w';
+if (square === state.b) return 'b';
+return null;
+}
+function squareToCoords(square) {
+return {
+file: FILES.indexOf(square[0]),
+rank: Number(square[1]) - 1
+};
+}
+function coordsToSquare(file, rank) {
+if (file < 0 || file > 7 || rank < 0 || rank > 7) return null;
+return FILES[file] + (rank + 1);
+}
+function occupiedAt(stateGame, wizardState, square) {
+return !!stateGame.get(square) || !!wizardAt(square, wizardState);
+}
+function isSquareAttacked(stateGame, wizardState, targetSquare, byColor) {
+const target = squareToCoords(targetSquare);
+const pawnOriginRank = target.rank - (byColor === 'w' ? 1 : -1);
+for (const df of [-1, 1]) {
+const sq = coordsToSquare(target.file + df, pawnOriginRank);
+if (!sq) continue;
+const p = stateGame.get(sq);
+if (p && p.color === byColor && p.type === 'p') return true;
+}
+const knightOffsets = [
+[1, 2], [2, 1], [2, -1], [1, -2],
+[-1, -2], [-2, -1], [-2, 1], [-1, 2]
+];
+for (const [df, dr] of knightOffsets) {
+const sq = coordsToSquare(target.file + df, target.rank + dr);
+if (!sq) continue;
+const p = stateGame.get(sq);
+if (p && p.color === byColor && p.type === 'n') return true;
+}
+for (let df = -1; df <= 1; df++) {
+for (let dr = -1; dr <= 1; dr++) {
+if (df === 0 && dr === 0) continue;
+const sq = coordsToSquare(target.file + df, target.rank + dr);
+if (!sq) continue;
+const p = stateGame.get(sq);
+if (p && p.color === byColor && p.type === 'k') return true;
+}
+}
+const rookDirs = [[1,0], [-1,0], [0,1], [0,-1]];
+for (const [df, dr] of rookDirs) {
+let f = target.file + df;
+let r = target.rank + dr;
+while (true) {
+const sq = coordsToSquare(f, r);
+if (!sq) break;
+if (wizardAt(sq, wizardState)) break;
+const p = stateGame.get(sq);
+if (p) {
+if (
+p.color === byColor &&
+(p.type === 'r' || p.type === 'q')
+) return true;
+break;
+}
+f += df;
+r += dr;
+}
+}
+const bishopDirs = [[1,1], [1,-1], [-1,1], [-1,-1]];
+for (const [df, dr] of bishopDirs) {
+let f = target.file + df;
+let r = target.rank + dr;
+while (true) {
+const sq = coordsToSquare(f, r);
+if (!sq) break;
+if (wizardAt(sq, wizardState)) break;
+const p = stateGame.get(sq);
+if (p) {
+if (
+p.color === byColor &&
+(p.type === 'b' || p.type === 'q')
+) return true;
+break;
+}
+f += df;
+r += dr;
+}
+}
+return false;
+}
+function findKing(stateGame, color) {
+for (const square of allSquares()) {
+const p = stateGame.get(square);
+if (p && p.color === color && p.type === 'k') return square;
+}
+return null;
+}
+function isKingInCheckState(stateGame, wizardState, color) {
+const kingSquare = findKing(stateGame, color);
+if (!kingSquare) return false;
+return isSquareAttacked(
+stateGame,
+wizardState,
+kingSquare,
+otherColor(color)
+);
+}
+function kingIsInCheck(color = game.turn()) {
+return isKingInCheckState(game, wizard, color);
+}
+function makeValidationGame(movingColor, skipSquare = null) {
+const test = new Chess(game.fen());
+['w', 'b'].forEach(color => {
+const square = wizard[color];
+if (!square || square === skipSquare || test.get(square)) return;
+test.put({ type: 'n', color: movingColor }, square);
+});
+return test;
+}
+function removeValidationBlockers(test) {
+['w', 'b'].forEach(color => {
+const square = wizard[color];
+if (!square) return;
+if (!game.get(square) && test.get(square)) {
+test.remove(square);
+}
+});
+}
+function loadValidationResult(test) {
+removeValidationBlockers(test);
+return game.load(test.fen());
+}
+function snapshotState() {
+return {
+fen: game.fen(),
+wizard: { w: wizard.w, b: wizard.b }
+};
+}
+function restoreState(state) {
+game.load(state.fen);
+wizard = { w: state.wizard.w, b: state.wizard.b };
+selectedWizard = null;
+gameFinished = false;
+}
+function syncBoard() {
+board.position(game.fen().split(' ')[0], false);
+renderWizards();
+updateStatus();
+updateUndoButton();
+}
+function updateUndoButton() {
+$('#undo').prop('disabled', historyStack.length === 0 || editorOpen);
+}
+function renderWizards() {
+$('#board .wizard-piece').remove();
+$('#board .wizard-selected').removeClass('wizard-selected');
+$('#board .wizard-target').removeClass('wizard-target');
+['w', 'b'].forEach(color => {
+const square = wizard[color];
+if (!square) return;
+const $square = $('#board [data-square="' + square + '"]');
+if (!$square.length) return;
+const $wizard = $('<div>')
+.addClass('wizard-piece')
+.addClass(color === 'w' ? 'white' : 'black')
+.text('W');
+$square.append($wizard);
+});
+if (!showWizardTargets || !selectedWizard || editorOpen) return;
+const square = wizard[selectedWizard];
+if (!square) return;
+$('#board [data-square="' + square + '"]').addClass('wizard-selected');
+$('#board .square-55d63').each(function () {
+const sq = $(this).attr('data-square');
+if (!sq || sq === square) return;
+if (
+wizardTargetAllowedByRules(selectedWizard, sq) &&
+wizardSwapKeepsKingSafe(selectedWizard, sq)
+) {
+$(this).addClass('wizard-target');
+}
+});
+}
+function canCaptureWizardForCheckmate(source, target, color) {
+const piece = game.get(source);
+if (!piece || piece.color !== color) return false;
+if (piece.type === 'p') {
+const sourceCoords = squareToCoords(source);
+const targetCoords = squareToCoords(target);
+const direction = color === 'w' ? 1 : -1;
+if (
+Math.abs(targetCoords.file - sourceCoords.file) !== 1 ||
+targetCoords.rank - sourceCoords.rank !== direction
+) return false;
+const test = makeValidationGame(color, target);
+test.remove(source);
+const promoted =
+(color === 'w' && targetCoords.rank === 7) ||
+(color === 'b' && targetCoords.rank === 0);
+if (!test.put({ type: promoted ? 'q' : 'p', color }, target)) {
+return false;
+}
+return !test.in_check();
+}
+const test = makeValidationGame(color, target);
+return test.move({
+from: source,
+to: target,
+promotion: 'q'
+}) !== null;
+}
+function legalNormalMoveCount(color) {
+const test = makeValidationGame(color);
+const wizardSquares = new Set(
+[wizard.w, wizard.b].filter(Boolean)
+);
+let count = 0;
+for (const move of test.moves({ verbose: true })) {
+if (!wizardSquares.has(move.from)) count++;
+}
+if (wizardCapturable) {
+const enemyWizardSquare = wizard[otherColor(color)];
+if (enemyWizardSquare) {
+for (const source of allSquares()) {
+const piece = game.get(source);
+if (
+piece &&
+piece.color === color &&
+canCaptureWizardForCheckmate(
+source,
+enemyWizardSquare,
+color
+)
+) {
+count++;
+}
+}
+}
+}
+return count;
+}
+function wizardTargetAllowedByRules(color, targetSquare) {
+const from = wizard[color];
+if (!from || targetSquare === from) return false;
+const targetWizardColor = wizardAt(targetSquare);
+const targetPiece = game.get(targetSquare);
+if (!targetWizardColor && !targetPiece) return false;
+if (targetWizardColor && !wizardCanSwitchWizard) {
+return false;
+}
+const targetColor = targetWizardColor
+? targetWizardColor
+: targetPiece.color;
+if (wizardSwitchScope === 'own' && targetColor !== color) {
+return false;
+}
+if (
+targetPiece &&
+targetPiece.type === 'k' &&
+!wizardCanSwitchKing
+) {
+return false;
+}
+return true;
+}
+function wizardSwapKeepsKingSafe(color, targetSquare) {
+const from = wizard[color];
+if (!from) return false;
+const test = new Chess(game.fen());
+const testWizard = { w: wizard.w, b: wizard.b };
+const targetWizardColor = wizardAt(targetSquare, testWizard);
+if (targetWizardColor) {
+const old = testWizard[color];
+testWizard[color] = testWizard[targetWizardColor];
+testWizard[targetWizardColor] = old;
+} else {
+const targetPiece = test.remove(targetSquare);
+if (!targetPiece) return false;
+if (!test.put(targetPiece, from)) return false;
+testWizard[color] = targetSquare;
+}
+return !isKingInCheckState(test, testWizard, color);
+}
+function legalWizardMoveCount(color) {
+if (!wizard[color]) return 0;
+let count = 0;
+for (const square of allSquares()) {
+if (
+wizardTargetAllowedByRules(color, square) &&
+wizardSwapKeepsKingSafe(color, square)
+) {
+count++;
+}
+}
+return count;
+}
+function validatePlayablePosition() {
+const whiteKing = findKing(game, 'w');
+const blackKing = findKing(game, 'b');
+if (!whiteKing || !blackKing) {
+return 'Both sides need exactly one King.';
+}
+const w = squareToCoords(whiteKing);
+const b = squareToCoords(blackKing);
+if (
+Math.abs(w.file - b.file) <= 1 &&
+Math.abs(w.rank - b.rank) <= 1
+) {
+return 'The two Kings cannot be next to each other.';
+}
+for (const square of allSquares()) {
+const piece = game.get(square);
+if (
+piece &&
+piece.type === 'p' &&
+(square[1] === '1' || square[1] === '8')
+) {
+return 'Pawns cannot be placed on rank 1 or rank 8.';
+}
+}
+if (
+kingIsInCheck('w') &&
+kingIsInCheck('b')
+) {
+return 'Both Kings cannot be in check at the same time.';
+}
+return null;
+}
+function updateStatus(extraMessage) {
+const $status = $('#status');
+const $reply = $('#replyInfo');
+if (editorOpen) {
+gameFinished = false;
+$status.text(extraMessage || 'Board editor is open.');
+$reply.text('');
+return;
+}
+if (extraMessage) {
+$status.text(extraMessage);
+$reply.text('');
+return;
+}
+const invalid = validatePlayablePosition();
+if (invalid) {
+gameFinished = true;
+$status.text('Invalid position: ' + invalid);
+$reply.text('');
+return;
+}
+const turn = game.turn();
+const inCheck = kingIsInCheck(turn);
+const normalReplies = legalNormalMoveCount(turn);
+const wizardReplies = legalWizardMoveCount(turn);
+const totalReplies = normalReplies + wizardReplies;
+if (inCheck && totalReplies === 0) {
+gameFinished = true;
+$status.text(
+'Checkmate. ' + colorName(otherColor(turn)) + ' wins.'
+);
+$reply.text('Legal replies: 0 normal, 0 Wizard.');
+return;
+}
+if (!inCheck && totalReplies === 0) {
+gameFinished = true;
+$status.text('Stalemate.');
+$reply.text('Legal moves: 0 normal, 0 Wizard.');
+return;
+}
+gameFinished = false;
+let text = colorName(turn) + ' to move';
+if (inCheck) text += ' — check';
+$status.text(text);
+if (inCheck) {
+$reply.text(
+'Legal replies: ' +
+normalReplies + ' normal, ' +
+wizardReplies + ' Wizard.'
+);
+} else {
+$reply.text('');
+}
+if (!wizard.w && !wizard.b) {
+const oursMate = inCheck && totalReplies === 0;
+const oursStalemate = !inCheck && totalReplies === 0;
+if (
+game.in_checkmate() !== oursMate ||
+game.in_stalemate() !== oursStalemate
+) {
+console.warn(
+'Wizard-aware mate check disagrees with chess.js in a no-Wizard position.'
+);
+}
+}
+}
+function pawnCaptureWizard(source, target, movingColor, capturedWizardColor) {
+const sourcePiece = game.get(source);
+if (
+!sourcePiece ||
+sourcePiece.type !== 'p' ||
+sourcePiece.color !== movingColor
+) return false;
+const sourceCoords = squareToCoords(source);
+const targetCoords = squareToCoords(target);
+const direction = movingColor === 'w' ? 1 : -1;
+if (
+Math.abs(targetCoords.file - sourceCoords.file) !== 1 ||
+targetCoords.rank - sourceCoords.rank !== direction
+) return false;
+const test = makeValidationGame(movingColor, target);
+test.remove(source);
+const promoted =
+(movingColor === 'w' && targetCoords.rank === 7) ||
+(movingColor === 'b' && targetCoords.rank === 0);
+const placed = test.put(
+{ type: promoted ? 'q' : 'p', color: movingColor },
+target
+);
+if (!placed || test.in_check()) return false;
+const oldWizardSquare = wizard[capturedWizardColor];
+wizard[capturedWizardColor] = null;
+removeValidationBlockers(test);
+const parts = test.fen().split(' ');
+parts[1] = otherColor(movingColor);
+parts[2] = '-';
+parts[3] = '-';
+parts[4] = '0';
+if (movingColor === 'b') {
+parts[5] = String((Number(parts[5]) || 1) + 1);
+}
+if (!game.load(parts.join(' '))) {
+wizard[capturedWizardColor] = oldWizardSquare;
+return false;
+}
+return true;
+}
+function makeNormalMove(source, target) {
+const piece = game.get(source);
+if (!piece || piece.color !== game.turn()) return false;
+const movingColor = piece.color;
+const targetWizardColor = wizardAt(target);
+if (targetWizardColor === movingColor) {
+updateStatus('You cannot capture your own Wizard.');
+return false;
+}
+if (targetWizardColor) {
+if (!wizardCapturable) {
+updateStatus('Wizards cannot be captured with the current rule.');
+return false;
+}
+if (piece.type === 'p') {
+return pawnCaptureWizard(
+source,
+target,
+movingColor,
+targetWizardColor
+);
+}
+const test = makeValidationGame(movingColor, target);
+const move = test.move({
+from: source,
+to: target,
+promotion: 'q'
+});
+if (move === null) return false;
+const oldWizardSquare = wizard[targetWizardColor];
+wizard[targetWizardColor] = null;
+removeValidationBlockers(test);
+const parts = test.fen().split(' ');
+parts[4] = '0';
+if (!game.load(parts.join(' '))) {
+wizard[targetWizardColor] = oldWizardSquare;
+return false;
+}
+return true;
+}
+const test = makeValidationGame(movingColor);
+const move = test.move({
+from: source,
+to: target,
+promotion: 'q'
+});
+if (move === null) return false;
+return loadValidationResult(test);
+}
+function onDragStart(source, piece) {
+if (editorOpen || gameFinished || selectedWizard) return false;
+const color = piece[0];
+return color === game.turn();
+}
+function onDrop(source, target) {
+const before = snapshotState();
+const moved = makeNormalMove(source, target);
+if (!moved) return 'snapback';
+historyStack.push(before);
+selectedWizard = null;
+}
+function onSnapEnd() {
+syncBoard();
+}
+function toggleTurnAfterWizardMove(movingColor) {
+const parts = game.fen().split(' ');
+parts[1] = otherColor(movingColor);
+parts[3] = '-';
+parts[4] = String((Number(parts[4]) || 0) + 1);
+if (movingColor === 'b') {
+parts[5] = String((Number(parts[5]) || 1) + 1);
+}
+game.load(parts.join(' '));
+}
+function swapWizard(color, targetSquare) {
+if (!wizardTargetAllowedByRules(color, targetSquare)) {
+updateStatus('That piece is not an allowed Wizard target.');
+return;
+}
+if (!wizardSwapKeepsKingSafe(color, targetSquare)) {
+updateStatus('That Wizard switch would leave your King in check.');
+return;
+}
+const from = wizard[color];
+const targetWizardColor = wizardAt(targetSquare);
+const before = snapshotState();
+if (targetWizardColor) {
+const old = wizard[color];
+wizard[color] = wizard[targetWizardColor];
+wizard[targetWizardColor] = old;
+} else {
+const oldFen = game.fen();
+const pieceToSwap = game.remove(targetSquare);
+if (!pieceToSwap || !game.put(pieceToSwap, from)) {
+game.load(oldFen);
+updateStatus('That switch could not be made.');
+return;
+}
+wizard[color] = targetSquare;
+}
+toggleTurnAfterWizardMove(color);
+historyStack.push(before);
+selectedWizard = null;
+syncBoard();
+}
+function setRulePair(noId, yesId, enabled) {
+$('#' + noId).toggleClass('active', !enabled);
+$('#' + yesId).toggleClass('active', enabled);
+}
+function setScope(scope) {
+wizardSwitchScope = scope;
+$('#scopeOwn').toggleClass('active', scope === 'own');
+$('#scopeAny').toggleClass('active', scope === 'any');
+selectedWizard = null;
+renderWizards();
+updateStatus();
+}
+function setTurnForEditor(color) {
+const parts = game.fen().split(' ');
+parts[1] = color;
+parts[2] = '-';
+parts[3] = '-';
+parts[4] = '0';
+parts[5] = '1';
+return game.load(parts.join(' '));
+}
+function findExistingKing(color) {
+return findKing(game, color);
+}
+function editSquare(square) {
+const before = snapshotState();
+const choice = editorSelection;
+if (choice === 'erase') {
+game.remove(square);
+if (wizard.w === square) wizard.w = null;
+if (wizard.b === square) wizard.b = null;
+syncBoard();
+return;
+}
+const color = choice[0];
+const type = choice[1].toLowerCase();
+if (type === 'w') {
+game.remove(square);
+if (wizardAt(square)) {
+const oldColor = wizardAt(square);
+wizard[oldColor] = null;
+}
+wizard[color] = square;
+syncBoard();
+return;
+}
+if (wizard.w === square) wizard.w = null;
+if (wizard.b === square) wizard.b = null;
+game.remove(square);
+if (type === 'k') {
+const oldKing = findExistingKing(color);
+if (oldKing && oldKing !== square) game.remove(oldKing);
+}
+const ok = game.put({ type, color }, square);
+if (!ok) {
+restoreState(before);
+syncBoard();
+updateStatus('That piece cannot be placed on that square.');
+return;
+}
+syncBoard();
+}
+function openEditor() {
+if (editorOpen) return;
+editorBackup = snapshotState();
+editorOpen = true;
+selectedWizard = null;
+gameFinished = false;
+$('#editorPanel').addClass('open');
+$('#editorTurn').val(game.turn());
+$('#edit').text('Editing...');
+syncBoard();
+}
+function closeEditorApplied() {
+const invalid = validatePlayablePosition();
+if (invalid) {
+updateStatus('Editor: ' + invalid);
+return;
+}
+const turn = $('#editorTurn').val();
+if (!setTurnForEditor(turn)) {
+updateStatus('Could not apply that position.');
+return;
+}
+editorOpen = false;
+editorBackup = null;
+historyStack = [];
+selectedWizard = null;
+$('#editorPanel').removeClass('open');
+$('#edit').text('Edit board');
+syncBoard();
+}
+function cancelEditor() {
+if (!editorBackup) return;
+restoreState(editorBackup);
+editorBackup = null;
+editorOpen = false;
+$('#editorPanel').removeClass('open');
+$('#edit').text('Edit board');
+syncBoard();
+}
+$('#board').on('click', '[data-square]', function () {
+const square = $(this).attr('data-square');
+if (editorOpen) {
+editSquare(square);
+return;
+}
+if (gameFinished) return;
+const turn = game.turn();
+if (!selectedWizard) {
+if (square === wizard[turn]) {
+selectedWizard = turn;
+renderWizards();
+updateStatus(colorName(turn) + ' Wizard selected.');
+}
+return;
+}
+if (selectedWizard !== turn) {
+selectedWizard = null;
+renderWizards();
+return;
+}
+if (square === wizard[selectedWizard]) {
+selectedWizard = null;
+renderWizards();
+updateStatus();
+return;
+}
+swapWizard(selectedWizard, square);
+});
+$('#captureNo').on('click', function () {
+wizardCapturable = false;
+setRulePair('captureNo', 'captureYes', false);
+updateStatus();
+});
+$('#captureYes').on('click', function () {
+wizardCapturable = true;
+setRulePair('captureNo', 'captureYes', true);
+updateStatus();
+});
+$('#scopeOwn').on('click', function () {
+setScope('own');
+});
+$('#scopeAny').on('click', function () {
+setScope('any');
+});
+$('#kingNo').on('click', function () {
+wizardCanSwitchKing = false;
+setRulePair('kingNo', 'kingYes', false);
+selectedWizard = null;
+renderWizards();
+updateStatus();
+});
+$('#kingYes').on('click', function () {
+wizardCanSwitchKing = true;
+setRulePair('kingNo', 'kingYes', true);
+selectedWizard = null;
+renderWizards();
+updateStatus();
+});
+$('#wwNo').on('click', function () {
+wizardCanSwitchWizard = false;
+setRulePair('wwNo', 'wwYes', false);
+selectedWizard = null;
+renderWizards();
+updateStatus();
+});
+$('#wwYes').on('click', function () {
+wizardCanSwitchWizard = true;
+setRulePair('wwNo', 'wwYes', true);
+selectedWizard = null;
+renderWizards();
+updateStatus();
+});
+$('#targetsNo').on('click', function () {
+showWizardTargets = false;
+setRulePair('targetsNo', 'targetsYes', false);
+renderWizards();
+});
+$('#targetsYes').on('click', function () {
+showWizardTargets = true;
+setRulePair('targetsNo', 'targetsYes', true);
+renderWizards();
+});
+$('#reset').on('click', function () {
+if (editorOpen) {
+editorOpen = false;
+editorBackup = null;
+$('#editorPanel').removeClass('open');
+$('#edit').text('Edit board');
+}
+game.reset();
+wizard = { w: 'd3', b: 'd6' };
+selectedWizard = null;
+gameFinished = false;
+historyStack = [];
+syncBoard();
+});
+$('#undo').on('click', function () {
+if (editorOpen || historyStack.length === 0) return;
+restoreState(historyStack.pop());
+syncBoard();
+});
+$('#flip').on('click', function () {
+board.flip();
+setTimeout(renderWizards, 0);
+});
+$('#edit').on('click', function () {
+if (!editorOpen) openEditor();
+});
+$('.piece-choice').on('click', function () {
+editorSelection = $(this).attr('data-edit-piece');
+$('.piece-choice').removeClass('active');
+$(this).addClass('active');
+});
+$('#editorClear').on('click', function () {
+game.clear();
+wizard = { w: null, b: null };
+selectedWizard = null;
+syncBoard();
+});
+$('#editorStart').on('click', function () {
+game.reset();
+wizard = { w: 'd3', b: 'd6' };
+$('#editorTurn').val('w');
+selectedWizard = null;
+syncBoard();
+});
+$('#editorApply').on('click', closeEditorApplied);
+$('#editorCancel').on('click', cancelEditor);
+board = Chessboard('board', {
+position: 'start',
+draggable: true,
+pieceTheme:
+'https://cdn.jsdelivr.net/gh/oakmac/chessboardjs@1.0.0/website/img/chesspieces/wikipedia/{piece}.png',
+onDragStart,
+onDrop,
+onSnapEnd
+});
+syncBoard();
+$(window).on('resize', function () {
+board.resize();
+renderWizards();
+});
+</script>
+</body>
+</html>
